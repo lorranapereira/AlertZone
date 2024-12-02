@@ -7,11 +7,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  Button,
-  Text,
-  TextInput,
-} from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import { Context } from "../context/authContext";
 import EmailInput from "../components/EmailInput";
 import PasswordInput from "../components/PasswordInput";
@@ -25,38 +21,35 @@ const SignIn = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(true);
 
   return (
-    <TouchableWithoutFeedback touchSoundDisabled onPress={() => Keyboard.dismiss()}>
+    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.login}>Login</Text>
+        <View style={styles.innerContainer}>
+          <Text style={styles.login}>Login</Text>
 
-        <EmailInput value={email} setValue={setEmail} />
+          <EmailInput value={email} setValue={setEmail} />
 
-        <PasswordInput
-          value={password}
-          setValue={setPassword}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-        />
-        <TouchableOpacity
-          onPress={() => navigation.navigate("SignUp")}
-        ></TouchableOpacity>
+          <PasswordInput
+            value={password}
+            setValue={setPassword}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+          />
 
-        <Button 
-          mode="contained" 
-          style={styles.loginButton}      
-          onPress={() => navigation.navigate("Home")}>
-          Login
-        </Button>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("SignUp")}
-        >
-          <Text>
-            Não tem uma conta?{" "}
-            <Text style={styles.createAccountText}>
-              Crie uma
+          <Button
+            mode="contained"
+            style={styles.loginButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+            Login
+          </Button>
+
+          <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
+            <Text>
+              Não tem uma conta?{" "}
+              <Text style={styles.createAccountText}>Crie uma</Text>
             </Text>
-          </Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
@@ -64,23 +57,31 @@ const SignIn = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: "40%",
-    alignSelf: "center",
-    width: "80%",
+    flex: 1, // Ocupa toda a altura
+    justifyContent: "center", // Centraliza verticalmente
+    alignItems: "center", // Centraliza horizontalmente
+    backgroundColor: "#f5f5f5", // Fundo claro para destaque
+  },
+  innerContainer: {
+    width: "80%", // Largura do formulário
+    maxWidth: 400, // Largura máxima para telas grandes
+    padding: 20, // Espaçamento interno
+    backgroundColor: "#ffffff", // Fundo branco
+    borderRadius: 10, // Borda arredondada
+    shadowColor: "#000", // Sombra para destacar
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3, // Sombra para Android
   },
   login: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: "bold",
-    marginBottom: 10,
-  },
-  textInput: {
-    marginBottom: 10,
+    marginBottom: 20,
+    textAlign: "center",
   },
   loginButton: {
-    padding: 5,
-    margin: 20,
-    width: "50%",
-    alignSelf: "center",
+    marginTop: 20,
+    paddingVertical: 10,
   },
   createAccountText: {
     fontWeight: "bold",

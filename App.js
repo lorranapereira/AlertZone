@@ -1,4 +1,5 @@
 import React from "react";
+import { useWindowDimensions } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createDrawerNavigator } from "@react-navigation/drawer";
@@ -11,59 +12,87 @@ import RelatorioLocal from "./src/screens/RelatorioLocal";
 import RelatorioGeral from "./src/screens/RelatorioGeral";
 
 import CustomDrawer from "./src/components/CustomDrawer";
-
 import { Provider } from "./src/context/authContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-//Tanstack react query - problema com realtime
-//react-iphone-screen-helper
-// Drawer Navigator para o menu
-//flatlist para pagina de fedd
 
 const Drawer = createDrawerNavigator();
-
-// Stack Navigator para autenticação
 const Stack = createNativeStackNavigator();
 
-// Configuração do Menu com Drawer Navigator
 const DrawerScreens = () => {
+  const { width } = useWindowDimensions();
+
+  const drawerStyle = {
+    width: width < 768 ? 200 : 300,
+  };
+
+  const contentStyle = {
+    paddingTop: width < 768 ? 5 : 10,
+  };
+
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawer {...props} />}
       screenOptions={{
-        headerShown: false, // Oculta o cabeçalho padrão
-        drawerStyle: { width: 250},
-        contentStyle: {
-          paddingTop: 20,
-        },
+        headerShown: false, // O cabeçalho padrão será oculto nas telas do Drawer
+        drawerStyle,
+        contentStyle,
       }}
     >
-      {/* Telas dentro do Menu */}
       <Drawer.Screen name="Home" component={Home} />
       <Drawer.Screen name="Timeline" component={Timeline} />
       <Drawer.Screen name="Conta" component={Conta} />
       <Drawer.Screen name="RelatorioLocal" component={RelatorioLocal} />
       <Drawer.Screen name="RelatorioGeral" component={RelatorioGeral} />
-
     </Drawer.Navigator>
   );
 };
 
-// Configuração principal da aplicação
 const App = () => {
+  const stackScreenOptions = {
+    headerShown: false, // Oculta o cabeçalho global por padrão
+  };
+
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false,  drawerStyle: { paddingVertical: 250 }}}>
-        {/* Fluxo de autenticação */}
-        <Stack.Screen name="SignIn" component={SignIn} />
-        <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Navigator screenOptions={stackScreenOptions}>
+        {/* Telas de autenticação com cabeçalho ativado */}
+        <Stack.Screen
+          name="SignIn"
+          component={SignIn}
+          options={{ headerShown: true }} // Habilita o cabeçalho para esta tela
+        />
+        <Stack.Screen
+          name="SignUp"
+          component={SignUp}
+          options={{ headerShown: true }} // Habilita o cabeçalho para esta tela
+        />
 
-        {/* Menu principal com o Drawer */}
-        <Stack.Screen name="Home" component={DrawerScreens} />
-        <Stack.Screen name="Timeline" component={DrawerScreens} />
-        <Stack.Screen name="Conta" component={DrawerScreens} />
-        <Stack.Screen name="RelatorioLocal" component={DrawerScreens} />
-        <Stack.Screen name="RelatorioGeral" component={DrawerScreens} />
-
+        {/* Telas principais (Drawer) sem cabeçalho */}
+        <Stack.Screen
+          name="Home"
+          component={DrawerScreens}
+          options={{ headerShown: false }} // Mantém o cabeçalho oculto
+        />
+        <Stack.Screen
+          name="Timeline"
+          component={DrawerScreens}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Conta"
+          component={DrawerScreens}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RelatorioLocal"
+          component={DrawerScreens}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RelatorioGeral"
+          component={DrawerScreens}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

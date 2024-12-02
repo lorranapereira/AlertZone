@@ -1,18 +1,17 @@
 import React from "react";
-import { StyleSheet, View, TextInput, ScrollView, TouchableOpacity} from "react-native";
+import { StyleSheet, View, TextInput, ScrollView, TouchableOpacity } from "react-native";
 import { Card, Text, Button, Avatar, IconButton } from "react-native-paper";
 
 const Timeline = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.openDrawer()}>
           <IconButton icon="menu" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <View>
+      <View style={styles.flexDirectionRow}>
         <Text style={styles.headerTitle}>Alertas!</Text>
         <Button mode="outlined" style={styles.createButton}>
           Criar novo
@@ -34,33 +33,33 @@ const Timeline = ({ navigation }) => {
               Comentar
             </Button>
           </Card.Content>
-        </Card>
 
-        {/* Comments */}
-        <Card style={styles.commentCard}>
-          <Card.Content style={styles.commentContent}>
-            <Avatar.Text size={32} label="A" style={styles.avatar} />
-            <View>
-              <Text style={styles.commentDate}>Hoje às 10:30</Text>
-              <Text style={styles.commentText}>
-                Hoje foi um dia que certamente não esquecerei tão cedo.
-              </Text>
-            </View>
-            <IconButton icon="dots-vertical" size={20} />
-          </Card.Content>
-        </Card>
+          {/* Comments */}
+          <Card style={styles.commentCard}>
+            <Card.Content style={styles.commentContent}>
+              <Avatar.Text size={32} label="A" style={styles.avatar} />
+              <View>
+                <Text style={styles.commentDate}>Hoje às 10:30</Text>
+                <Text style={styles.commentText}>
+                  Hoje foi um dia que certamente não esquecerei tão cedo.
+                </Text>
+              </View>
+              {/* <IconButton icon="dots-horizontal" size={20} /> */}
+            </Card.Content>
+          </Card>
 
-        <Card style={styles.commentCard}>
-          <Card.Content style={styles.commentContent}>
-            <Avatar.Text size={32} label="B" style={styles.avatar} />
-            <View>
-              <Text style={styles.commentDate}>Hoje às 10:30</Text>
-              <Text style={styles.commentText}>
-                Hoje foi um dia que certamente não esquecerei tão cedo.
-              </Text>
-            </View>
-            <IconButton icon="dots-vertical" size={20} />
-          </Card.Content>
+          <Card style={styles.commentCard}>
+            <Card.Content style={styles.commentContent}>
+              <Avatar.Text size={32} label="B" style={styles.avatar} />
+              <View>
+                <Text style={styles.commentDate}>Hoje às 10:30</Text>
+                <Text style={styles.commentText}>
+                  Hoje foi um dia que certamente não esquecerei tão cedo.
+                </Text>
+              </View>
+              {/* <IconButton icon="dots-horizontal" size={20} /> */}
+            </Card.Content>
+          </Card>
         </Card>
       </ScrollView>
 
@@ -90,15 +89,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginLeft: 10,
-    marginVertical:10,
-    marginLeft:20,
+    marginVertical: 10,
+    marginLeft: 20,
   },
   createButton: {
     width: 180,
     borderRadius: 5,
-    alignSelf: "center", // Centraliza o botão horizontalmente
-    justifyContent: "center", // Centraliza o texto verticalmente
-    alignItems: "center", // Centraliza o texto horizontalmente
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
   },
   postCard: {
     marginBottom: 10,
@@ -132,10 +131,17 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     padding: 10,
     borderRadius: 10,
+    elevation: 0, 
+    shadowOpacity: 0,
+    shadowColor: 'transparent',
+    
   },
   commentContent: {
     flexDirection: "row",
     alignItems: "center",
+    borderTopColor: 'lightgray',
+    borderTopWidth: 1,
+    marginRight: 30,
   },
   avatar: {
     marginRight: 10,
@@ -167,6 +173,13 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     borderRadius: 5,
+  },
+
+  flexDirectionRow: {
+    flexDirection: "row",
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
 });
 

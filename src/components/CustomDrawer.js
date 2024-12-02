@@ -14,14 +14,14 @@ const CustomDrawer = (props) => {
           onPress={() => props.navigation.closeDrawer()}
         />
         <View style={styles.profileContainer}>
-          <Avatar.Text size={50} label="AP" />
+          <Avatar.Text size={35} label="AP" />
           <Title style={styles.userName}>Ana Pereira</Title>
         </View>
       </View>
 
       {/* Itens do Menu */}
       <DrawerContentScrollView {...props}>
-        <Drawer.Section>
+        <Drawer.Section style={styles.section} >
           <DrawerItem
             icon={({ color, size }) => (
               <IconButton icon="map-marker" color={color} size={size} />
@@ -38,26 +38,26 @@ const CustomDrawer = (props) => {
           />
           <DrawerItem
             icon={({ color, size }) => (
-              <IconButton icon="account" color={color} size={size} />
-            )}
-            label="Minha Conta"
-            onPress={() => props.navigation.navigate("Conta")}
-          />
-          <DrawerItem
-            icon={({ color, size }) => (
-              <IconButton icon="cog" color={color} size={size} />
+              <IconButton icon="chart-bar" color={color} size={size} />
             )}
             label="Relatório Local"
             onPress={() => props.navigation.navigate("RelatorioLocal")}
           />
           <DrawerItem
             icon={({ color, size }) => (
-              <IconButton icon="cog" color={color} size={size} />
+              <IconButton icon="chart-bar" color={color} size={size} />
             )}
             label="Relatório Geral"
             onPress={() => props.navigation.navigate("RelatorioGeral")}
           />
-        </Drawer.Section>
+          <DrawerItem
+            icon={({ color, size }) => (
+              <IconButton icon="account" color={color} size={size} />
+            )}
+            label="Minha Conta"
+            onPress={() => props.navigation.navigate("Conta")}
+          />
+        </Drawer.Section> 
       </DrawerContentScrollView>
     </View>
   );
@@ -66,20 +66,23 @@ const CustomDrawer = (props) => {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: "#001f4d",
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    flexDirection: "row",
-    alignItems: "center",
+    paddingHorizontal: 0,
+    paddingVertical: 30,
   },
   profileContainer: {
-    flex: 1,
-    marginLeft: 10,
+    flexDirection: "row",
+    marginTop:10,
+    marginLeft: 20,
   },
   userName: {
     color: "#fff",
     fontSize: 18,
     marginTop: 5,
+    marginLeft: 15,
   },
+  section: {
+    marginTop: -40,
+  }
 });
 
 export default CustomDrawer;

@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity,   TouchableWithoutFeedback} from "react-native";
 import {
-  Text,
-  TextInput,
-  Button,
-} from "react-native-paper";
+  StyleSheet,
+  TouchableOpacity,
+  Keyboard,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
+import { Text, Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NameInput from "../components/NameInput";
 import EmailInput from "../components/EmailInput";
@@ -20,32 +22,28 @@ const SignUp = ({ navigation }) => {
   return (
     <TouchableWithoutFeedback touchSoundDisabled onPress={() => Keyboard.dismiss()}>
       <SafeAreaView style={styles.container}>
-        <Text style={styles.createAccount}>Criar conta</Text>
-        <NameInput
-          value={name}
-          setValue={setName}
-        />
+        <View style={styles.innerContainer}>
+          <Text style={styles.createAccount}>Criar conta</Text>
 
-        <EmailInput value={email} setValue={setEmail} />
+          <NameInput value={name} setValue={setName} />
+          <EmailInput value={email} setValue={setEmail} />
+          <PasswordInput
+            value={password}
+            setValue={setPassword}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+          />
 
-        <PasswordInput
-          value={password}
-          setValue={setPassword}
-          showPassword={showPassword}
-          setShowPassword={setShowPassword}
-        />
+          <Button style={styles.createButton} mode="contained">
+            Criar
+          </Button>
 
-        <Button style={styles.createButton} mode="contained">
-          Criar
-        </Button>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("SignIn")}
-        >
-          <Text>
-            Já tem uma conta?{" "}
-            <Text style={styles.loginText}>Faça o login</Text>
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("SignIn")}>
+            <Text>
+              Já tem uma conta? <Text style={styles.loginText}>Faça o login</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </TouchableWithoutFeedback>
   );
@@ -53,19 +51,31 @@ const SignUp = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: "40%",
-    alignSelf: "center",
-    width: "80%",
+    flex: 1, // Ocupa toda a altura
+    justifyContent: "center", // Centraliza verticalmente
+    alignItems: "center", // Centraliza horizontalmente
+    backgroundColor: "#f5f5f5", // Fundo claro
+  },
+  innerContainer: {
+    width: "80%", // Largura do formulário
+    maxWidth: 400, // Largura máxima para telas grandes
+    padding: 20, // Espaçamento interno
+    backgroundColor: "#ffffff", // Fundo branco
+    borderRadius: 10, // Borda arredondada
+    shadowColor: "#000", // Sombra
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 3, // Sombra no Android
   },
   createAccount: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 20,
+    textAlign: "center",
   },
   createButton: {
-    padding: 5,
-    margin: 20,
-    width: "50%",
+    marginTop: 20,
+    paddingVertical: 10,
     alignSelf: "center",
   },
   loginText: {

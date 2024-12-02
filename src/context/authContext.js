@@ -8,9 +8,9 @@ const reducer = (state, action) => {
       return state;
   }
 };
-
+                               
 const teste = (dispatch) => {
-  return (args) => {
+  return (args) => {                                                                                
     console.log(args);
   };
 };
