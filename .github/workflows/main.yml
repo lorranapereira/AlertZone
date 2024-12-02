@@ -22,7 +22,7 @@ jobs:
 
       # Instala as dependências do projeto
       - name: Install Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       # Constrói o projeto (se necessário)
       - name: Build Project
