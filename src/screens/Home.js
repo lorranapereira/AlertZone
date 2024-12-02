@@ -16,27 +16,35 @@ const Home = ({ navigation }) => {
   const mapRef = useRef(null);
 
   useEffect(() => {
-    // Inicializa o mapa
-    const map = L.map(mapRef.current).setView([-32.035, -52.0986], 14);
+    // Inicializa o mapa com preferCanvas habilitado
+    const map = L.map(mapRef.current, {
+      preferCanvas: true, // Usa Canvas para renderização mais leve
+      zoomSnap: 0.5, // Suaviza níveis de zoom
+      zoomDelta: 0.25, // Pequenas mudanças no zoom
+      scrollWheelZoom: false, // Desativa zoom com scroll no mobile
+      doubleClickZoom: false, // Desativa zoom com clique duplo
+    }).setView([-32.035, -52.0986], 13); // Zoom inicial ajustado
 
-    // Adiciona o tile layer do OpenStreetMap
+    // Adiciona o tile layer do OpenStreetMap com carregamento progressivo
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 18, // Limita o zoom máximo para evitar sobrecarga
+      updateWhenIdle: true, // Reduz requests desnecessários
     }).addTo(map);
 
-    // Adiciona marcadores
-    L.marker([-32.035, -52.0986])
-      .addTo(map)
-      .bindPopup("Suspeito vendendo celular")
-      .openPopup();
+    // Adiciona marcadores com popups
+    const markers = [
+      { lat: -32.035, lng: -52.0986, popup: "Suspeito vendendo celular" },
+      { lat: -32.04, lng: -52.11, popup: "Suspeito em atividade" },
+    ];
 
-    L.marker([-32.04, -52.11])
-      .addTo(map)
-      .bindPopup("Suspeito em atividade");
+    markers.forEach(({ lat, lng, popup }) =>
+      L.marker([lat, lng]).addTo(map).bindPopup(popup)
+    );
 
+    // Remove o mapa ao desmontar o componente
     return () => {
-      // Remove o mapa ao desmontar o componente
       map.remove();
     };
   }, []);
