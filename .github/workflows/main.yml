@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16' # Use a versão compatível com seu projeto
+          node-version: '18.20.5' # Use a versão compatível com seu projeto
 
       # Instala as dependências do projeto
       - name: Install Dependencies
