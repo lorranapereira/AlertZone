@@ -8,6 +8,9 @@ import {
 } from "react-native";
 import { Text, Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../firebaseConfig"; // Importe o auth configurado
+
 import NameInput from "../components/NameInput";
 import EmailInput from "../components/EmailInput";
 import PasswordInput from "../components/PasswordInput";
@@ -16,8 +19,24 @@ const SignUp = ({ navigation }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [showPassword, setShowPassword] = useState(true);
+  const handleSignUp = async () => {
+    setError("");
+    setIsLoading(true);
+    try {
+      // Firebase: Criar usuário com email e senha
+      await createUserWithEmailAndPassword(auth, email, password);
+
+      alert("Usuário registrado com sucesso!");
+      navigation.navigate("SignIn"); // Navegar para a tela de login após o cadastro
+    } catch (err) {
+      setError(err.message); // Exibir erro caso ocorra
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <TouchableWithoutFeedback touchSoundDisabled onPress={() => Keyboard.dismiss()}>
@@ -25,16 +44,24 @@ const SignUp = ({ navigation }) => {
         <View style={styles.innerContainer}>
           <Text style={styles.createAccount}>Criar conta</Text>
 
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
           <NameInput value={name} setValue={setName} />
           <EmailInput value={email} setValue={setEmail} />
           <PasswordInput
             value={password}
             setValue={setPassword}
-            showPassword={showPassword}
-            setShowPassword={setShowPassword}
+            showPassword
+            setShowPassword={() => {}}
           />
 
-          <Button style={styles.createButton} mode="contained">
+          <Button
+            style={styles.createButton}
+            mode="contained"
+            onPress={handleSignUp}
+            loading={isLoading}
+            disabled={isLoading}
+          >
             Criar
           </Button>
 
@@ -51,21 +78,21 @@ const SignUp = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Ocupa toda a altura
-    justifyContent: "center", // Centraliza verticalmente
-    alignItems: "center", // Centraliza horizontalmente
-    backgroundColor: "#f5f5f5", // Fundo claro
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
   },
   innerContainer: {
-    width: "80%", // Largura do formulário
-    maxWidth: 400, // Largura máxima para telas grandes
-    padding: 20, // Espaçamento interno
-    backgroundColor: "#ffffff", // Fundo branco
-    borderRadius: 10, // Borda arredondada
-    shadowColor: "#000", // Sombra
+    width: "80%",
+    maxWidth: 400,
+    padding: 20,
+    backgroundColor: "#ffffff",
+    borderRadius: 10,
+    shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 10,
-    elevation: 3, // Sombra no Android
+    elevation: 3,
   },
   createAccount: {
     fontSize: 32,
@@ -81,6 +108,11 @@ const styles = StyleSheet.create({
   loginText: {
     fontWeight: "bold",
     color: "#6200ee",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
+    textAlign: "center",
   },
 });
 
