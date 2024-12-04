@@ -8,25 +8,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Text } from "react-native-paper";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebaseConfig";
+
 import EmailInput from "../components/EmailInput";
 import PasswordInput from "../components/PasswordInput";
 
-const translateFirebaseError = (errorCode) => {
-  const errorMessages = {
-    "auth/invalid-credential": "Credenciais inválidas. Verifique suas informações e tente novamente.",
-    "auth/email-already-in-use": "O email informado já está em uso. Tente outro email ou faça login.",
-    "auth/weak-password": "A senha é muito fraca. Escolha uma senha mais forte.",
-    "auth/invalid-email": "O email informado não é válido. Verifique e tente novamente.",
-    "auth/user-not-found": "Usuário não encontrado. Verifique suas informações ou registre-se.",
-    "auth/wrong-password": "Senha incorreta. Verifique e tente novamente.",
-    "auth/too-many-requests": "Muitas tentativas. Por favor, aguarde e tente novamente mais tarde.",
-    // Outros códigos podem ser adicionados aqui
-  };
-
-  return errorMessages[errorCode] || "Ocorreu um erro desconhecido. Por favor, tente novamente.";
-};
+import { loginWithEmailAndPassword, translateFirebaseError } from "../services/authService";
 
 const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -39,11 +25,11 @@ const SignIn = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Login realizado com sucesso!");
-      navigation.navigate("Home");
+      const message = await loginWithEmailAndPassword(email, password); // Chama o serviço
+      alert(message);
+      navigation.navigate("Home"); // Navega para a tela Home em caso de sucesso
     } catch (err) {
-      const friendlyMessage = translateFirebaseError(err.code);
+      const friendlyMessage = translateFirebaseError(err.code); // Tradução do erro
       setError(friendlyMessage);
     } finally {
       setIsLoading(false);

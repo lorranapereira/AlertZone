@@ -1,22 +1,18 @@
-import createContext from "./createContext";
+import React, { createContext, useState } from "react";
 
-const initialState = {};
+const AuthContext = createContext();
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    default:
-      return state;
-  }
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  const login = (userData) => setUser(userData);
+  const logout = () => setUser(null);
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
-                               
-const teste = (dispatch) => {
-  return (args) => {                                                                                
-    console.log(args);
-  };
-};
 
-export const { Context, Provider } = createContext(
-  reducer,
-  { teste },
-  initialState
-);
+export default AuthContext;

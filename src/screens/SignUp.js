@@ -8,12 +8,12 @@ import {
 } from "react-native";
 import { Text, Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../firebaseConfig"; // Importe o auth configurado
 
 import NameInput from "../components/NameInput";
 import EmailInput from "../components/EmailInput";
 import PasswordInput from "../components/PasswordInput";
+
+import { signUpWithEmailAndPassword } from "../services/authService"; // Importe o serviço
 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -26,10 +26,8 @@ const SignUp = ({ navigation }) => {
     setError("");
     setIsLoading(true);
     try {
-      // Firebase: Criar usuário com email e senha
-      await createUserWithEmailAndPassword(auth, email, password);
-
-      alert("Usuário registrado com sucesso!");
+      const message = await signUpWithEmailAndPassword(email, password); // Chame o serviço
+      alert(message);
       navigation.navigate("SignIn"); // Navegar para a tela de login após o cadastro
     } catch (err) {
       setError(err.message); // Exibir erro caso ocorra
