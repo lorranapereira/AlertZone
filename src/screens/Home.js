@@ -102,28 +102,38 @@ const Home = ({ navigation }) => {
   const handleAutocomplete = async (text) => {
     setAddress(text);
     setSuggestions([]); // Limpa as sugestões antes de atualizar
-
+  
     if (text.length > 2) {
       const baseUrl = "https://nominatim.openstreetmap.org/search";
       const params = new URLSearchParams({
         format: "json",
         addressdetails: 1, // Para obter detalhes no resultado
-        limit: 5, // Limita os resultados
+        limit: 10, // Limita os resultados
         city: userLocation.city,
         state: userLocation.state,
         country: userLocation.country,
         street: text, // Filtra apenas ruas e bairros
       });
-
+  
       try {
         const response = await fetch(`${baseUrl}?${params.toString()}`);
         if (response.ok) {
           const data = await response.json();
-          const newSuggestions = data.map((item) => ({
-            display_name: item.name,
+  
+          // Remove duplicatas com base no atributo "name"
+          const uniqueSuggestions = data.filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.name === item.name)
+          );
+  
+          // Mapeia para sugestões formatadas
+          const newSuggestions = uniqueSuggestions.map((item) => ({
+            display_name: item.display_name,
+            name: item.name,
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
           }));
+  
           setSuggestions(newSuggestions);
         } else {
           console.error("Erro ao buscar sugestões:", response.statusText);
@@ -132,7 +142,7 @@ const Home = ({ navigation }) => {
         console.error("Erro na requisição do Nominatim:", error);
       }
     }
-  };
+  };  
 
   // Lógica para selecionar um item do autocomplete
   const handleSelectSuggestion = (suggestion) => {
