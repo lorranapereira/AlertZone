@@ -120,7 +120,7 @@ const Home = ({ navigation }) => {
         if (response.ok) {
           const data = await response.json();
           const newSuggestions = data.map((item) => ({
-            display_name: item.display_name,
+            display_name: item.name,
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
           }));
