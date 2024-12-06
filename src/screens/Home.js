@@ -112,7 +112,7 @@ const Home = ({ navigation }) => {
         city: userLocation.city,
         state: userLocation.state,
         country: userLocation.country,
-        street: text, // Filtra apenas ruas e bairros
+        q: text, // Permite busca por CEP, rua ou bairro
       });
   
       try {
@@ -123,13 +123,13 @@ const Home = ({ navigation }) => {
           // Remove duplicatas com base no atributo "name"
           const uniqueSuggestions = data.filter(
             (item, index, self) =>
-              index === self.findIndex((t) => t.name === item.name)
+              index === self.findIndex((t) => t.display_name === item.display_name)
           );
   
           // Mapeia para sugestões formatadas
           const newSuggestions = uniqueSuggestions.map((item) => ({
-            display_name: item.name + "," + item.address.city + ", " + item.address.city + ", " + item.address.state + ", " + item.address.country,
-            name: item.name,
+            display_name: item.display_name,
+            name: item.name || item.address.road || item.address.neighbourhood || item.address.postcode,
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
           }));
@@ -142,7 +142,22 @@ const Home = ({ navigation }) => {
         console.error("Erro na requisição do Nominatim:", error);
       }
     }
-  };  
+  };
+  
+  // Adiciona marcador ao clicar em "Registrar Incidente"
+  const handleRegisterIncident = () => {
+    if (!selectedCoordinates) {
+      alert("Selecione uma região no mapa ou pesquise um endereço/CEP");
+      return;
+    }
+  
+    // Adiciona um marcador permanente na localização
+    const marker = L.marker(selectedCoordinates).addTo(mapRef.current);
+  
+    // Exibe um alerta de confirmação
+    alert("Incidente registrado com sucesso!");
+  };
+   
 
   // Lógica para selecionar um item do autocomplete
   const handleSelectSuggestion = (suggestion) => {
