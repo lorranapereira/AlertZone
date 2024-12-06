@@ -204,9 +204,10 @@ const Home = ({ navigation }) => {
           value={address}
           onChangeText={handleAutocomplete}
         />
-        <Button mode="contained" style={styles.button}>
+        <Button mode="contained" style={styles.button} onPress={handleRegisterIncident}>
           Registrar Incidente
         </Button>
+
         {suggestions.length > 0 && (
           <View style={styles.suggestionsContainer}>
             {suggestions.map((suggestion, index) => (
