@@ -112,7 +112,7 @@ const Home = ({ navigation }) => {
         city: userLocation.city,
         state: userLocation.state,
         country: userLocation.country,
-        street: text,
+        street: text, // Filtra apenas ruas e bairros
       });
 
       try {
@@ -161,7 +161,9 @@ const Home = ({ navigation }) => {
 
       <Card style={styles.alertCard}>
         <Card.Content>
-          <Text style={styles.title}>Alertas da região {userLocation.city} - {userLocation.state}</Text>
+          <Text style={styles.title}>
+            Alertas da região {userLocation.city} - {userLocation.state}
+          </Text>
           <Text style={styles.subTitle}>⚠️ 4 Alertas na sua região</Text>
         </Card.Content>
       </Card>
