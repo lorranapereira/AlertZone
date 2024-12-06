@@ -109,10 +109,10 @@ const Home = ({ navigation }) => {
         format: "json",
         addressdetails: 1, // Para obter detalhes no resultado
         limit: 10, // Limita os resultados
-        city: userLocation.city, // Cidade baseada na localização atual do usuário
-        state: userLocation.state, // Estado baseado na localização atual do usuário
-        country: userLocation.country, // País baseado na localização atual do usuário
-        q: text, // Permite que o texto digitado seja flexível (rua, bairro ou CEP)
+        city: userLocation.city,
+        state: userLocation.state,
+        country: userLocation.country,
+        street: text, // Filtra apenas ruas e bairros
       });
   
       try {
@@ -120,16 +120,16 @@ const Home = ({ navigation }) => {
         if (response.ok) {
           const data = await response.json();
   
-          // Remove duplicatas com base no atributo "display_name"
+          // Remove duplicatas com base no atributo "name"
           const uniqueSuggestions = data.filter(
             (item, index, self) =>
-              index === self.findIndex((t) => t.display_name === item.display_name)
+              index === self.findIndex((t) => t.name === item.name)
           );
   
           // Mapeia para sugestões formatadas
           const newSuggestions = uniqueSuggestions.map((item) => ({
             display_name: item.name + "," + item.address.city + ", " + item.address.city + ", " + item.address.state + ", " + item.address.country,
-            name: item.name || item.address.road || item.address.neighbourhood || item.address.postcode,
+            name: item.name,
             lat: parseFloat(item.lat),
             lon: parseFloat(item.lon),
           }));
@@ -142,8 +142,8 @@ const Home = ({ navigation }) => {
         console.error("Erro na requisição do Nominatim:", error);
       }
     }
-  };
-  
+  };  
+
   // Lógica para selecionar um item do autocomplete
   const handleSelectSuggestion = (suggestion) => {
     setAddress(suggestion.display_name);
