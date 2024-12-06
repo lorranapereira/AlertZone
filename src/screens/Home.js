@@ -58,22 +58,21 @@ const Home = ({ navigation }) => {
   // Lógica para buscar sugestões no Nominatim
   const handleAutocomplete = async (text) => {
     setAddress(text);
-    setSuggestions([]); // Limpa as sugestões antes de atualizar
+    setSuggestions([]);
   
     if (text.length > 2) {
       const baseUrl = "https://nominatim.openstreetmap.org/search";
       const params = new URLSearchParams({
-        city: "Rio Grande",
-        state: "RS",
-        country: "Brazil",
         format: "json",
-        q: text,
+        q: text, // Apenas a consulta
+        addressdetails: 1, // Para obter detalhes no resultado
+        limit: 5, // Limite de sugestões para evitar sobrecarga
       });
   
       try {
         const response = await fetch(`${baseUrl}?${params.toString()}`, {
           headers: {
-            "User-Agent": "AlertZoneApp/1.0 (sp.lorranapereira@gmail.com)", // Adicione seu contato
+            "User-Agent": "AlertZoneApp/1.0 (contact@example.com)", // Adicione seu contato
           },
         });
   
