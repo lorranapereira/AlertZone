@@ -59,7 +59,7 @@ const Home = ({ navigation }) => {
   const handleAutocomplete = async (text) => {
     setAddress(text);
     setSuggestions([]); // Limpa as sugestões antes de atualizar
-
+  
     if (text.length > 2) {
       const baseUrl = "https://nominatim.openstreetmap.org/search";
       const params = new URLSearchParams({
@@ -69,9 +69,14 @@ const Home = ({ navigation }) => {
         format: "json",
         q: text,
       });
-
+  
       try {
-        const response = await fetch(`${baseUrl}?${params.toString()}`);
+        const response = await fetch(`${baseUrl}?${params.toString()}`, {
+          headers: {
+            "User-Agent": "AlertZoneApp/1.0 (sp.lorranapereira@gmail.com)", // Adicione seu contato
+          },
+        });
+  
         if (response.ok) {
           const data = await response.json();
           const newSuggestions = data.map((item) => ({
@@ -88,6 +93,7 @@ const Home = ({ navigation }) => {
       }
     }
   };
+  
 
   // Lógica para selecionar um item do autocomplete
   const handleSelectSuggestion = (suggestion) => {
