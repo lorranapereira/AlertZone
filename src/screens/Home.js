@@ -199,14 +199,11 @@ const Home = ({ navigation }) => {
                 key={index}
                 onPress={() => handleSelectSuggestion(suggestion)}
               >
-                <Text style={styles.suggestion}>
-                  {suggestion.name} ({suggestion.display_name.includes(suggestion.name) ? "Rua/Bairro" : "CEP"})
-                </Text>
+                <Text style={styles.suggestion}>{suggestion.display_name}</Text>
               </TouchableOpacity>
             ))}
           </View>
         )}
-
       </View>
     </View>
   );
