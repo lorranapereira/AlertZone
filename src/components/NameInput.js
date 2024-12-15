@@ -10,7 +10,7 @@ const NameInput = ({value, setValue}) => {
     mode="flat" 
     left={
       <TextInput.Icon
-        name="account"
+        icon="account"
         size={25}
         color="black"
       />

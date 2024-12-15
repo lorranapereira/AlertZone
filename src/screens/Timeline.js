@@ -1,108 +1,325 @@
-import React from "react";
-import { StyleSheet, View, TextInput, ScrollView, TouchableOpacity } from "react-native";
-import { Card, Text, Button, Avatar, IconButton } from "react-native-paper";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Button, Card, Avatar, Menu } from "react-native-paper";
+import { fetchIncidents, deleteIncident, updateIncident } from "../services/incidentService"; // Importa o getComments correto
+import { updateComment, getComments, deleteComment } from "../services/commentService"; // Importa o getComments correto
+import FormCommentIncident from "../components/FormCommentIncident";
+import { TextInput } from "react-native-paper";
 
-const Timeline = ({ navigation }) => {
+const Timeline = () => {
+  const [incidents, setIncidents] = useState([]);
+  const [comments, setComments] = useState({});
+  const [menuVisible, setMenuVisible] = useState({});
+  const [editingIncident, setEditingIncident] = useState(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const [editingDescription, setEditingDescription] = useState("");
+  const [editingComment, setEditingComment] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
+  const [selectedIncident, setSelectedIncident] = useState(null);
+
+  // Fetch initial data
+  useEffect(() => {
+    const getIncidents = async () => {
+      try {
+        const data = await fetchIncidents();
+        setIncidents(data);
+
+        // Fetch comments for each incident
+        const commentsData = {};
+        for (const incident of data) {
+          const incidentComments = await getComments(incident.id);
+          commentsData[incident.id] = incidentComments;
+        }
+        setComments(commentsData);
+      } catch (error) {
+        console.error("Erro ao carregar incidentes: ", error);
+      }
+    };
+
+    getIncidents();
+  }, []);
+
+  // Toggle menu visibility
+  const toggleMenu = (id) => {
+    setMenuVisible((prev) => ({ 
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  // Start editing an incident
+  const startEditing = (incident) => {
+    setSelectedIncident(null);
+    setEditingComment(null);
+    setEditingIncident(incident);
+    setEditingTitle(incident.title);
+    setEditingDescription(incident.description);
+    toggleMenu(incident.id);
+  };
+
+  // Save edited incident
+  const saveEditedIncident = async () => {
+    try {
+      await updateIncident(editingIncident.id, {
+        title: editingTitle,
+        description: editingDescription,
+      });
+
+      setIncidents((prev) =>
+        prev.map((incident) =>
+          incident.id === editingIncident.id
+            ? { ...incident, title: editingTitle, description: editingDescription }
+            : incident
+        )
+      );
+
+      setEditingIncident(null);
+      setEditingTitle("");
+      setEditingDescription("");
+      console.log("Alerta editado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao editar o alerta:", error);
+    }
+  };
+
+  // Delete an incident
+  const onDeleteIncident = async (incidentId) => {
+    try {
+      await deleteIncident(incidentId);
+      setIncidents((prev) => prev.filter((incident) => incident.id !== incidentId));
+      console.log("Alerta excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir o alerta:", error);
+    }
+  };
+
+  // Start editing a comment
+  const startEditingComment = (comment) => {
+    setSelectedIncident(null);
+    setEditingComment(null);
+    setEditingComment(comment);
+    setEditingCommentText(comment.text);
+    toggleMenu(comment.id);
+  };
+
+  // Save edited comment
+  const saveEditedComment = async () => {
+    try {
+      await updateComment(editingComment.id, { text: editingCommentText });
+
+      setComments((prevComments) => {
+        const updatedComments = { ...prevComments };
+        const incidentId = editingComment.incidentId;
+
+        updatedComments[incidentId] = updatedComments[incidentId].map((c) =>
+          c.id === editingComment.id ? { ...c, text: editingCommentText } : c
+        );
+
+        return updatedComments;
+      });
+
+      setEditingComment(null);
+      setEditingCommentText("");
+      console.log("Comentário editado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao editar o comentário:", error);
+    }
+  };
+
+  // Delete a comment
+  const onDeleteComment = async (comment, incidentId) => {
+    try {
+      await deleteComment(comment.id);
+
+      setComments((prevComments) => {
+        const updatedComments = { ...prevComments };
+        updatedComments[incidentId] = updatedComments[incidentId].filter(
+          (c) => c.id !== comment.id
+        );
+
+        return updatedComments;
+      });
+
+      console.log("Comentário excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir o comentário:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <IconButton icon="menu" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.headerTitle}>Alertas!</Text>
 
-      <View style={styles.flexDirectionRow}>
-        <Text style={styles.headerTitle}>Alertas!</Text>
-        <Button mode="outlined" style={styles.createButton}>
-          Criar novo
-        </Button>
-      </View>
-
-      {/* Timeline */}
       <ScrollView>
-        {/* Post */}
-        <Card style={styles.postCard}>
-          <Card.Content>
-            <Text style={styles.postDate}>Hoje às 10:30</Text>
-            <Text style={styles.postTitle}>Acabei de ser assaltada</Text>
-            <Text style={styles.postDescription}>
-              Hoje foi um dia que certamente não esquecerei tão cedo. Enquanto caminhava pelas movimentadas ruas do centro da cidade, subitamente me vi envolvida em uma situação que me deixou completamente atordoada.
-            </Text>
-            <Text style={styles.commentCount}>2 Comentários</Text>
-            <Button mode="contained" style={styles.commentButton}>
+        {incidents.map((incident) => (
+          <Card style={styles.postCard} key={incident.id}>
+            <Card.Content>
+              <View style={styles.postHeader}>
+                <Avatar.Icon size={40} icon="alert" style={styles.avatar} />
+                <Text style={styles.postDate}>
+                  {new Date(incident.createdAt).toLocaleString()}
+                </Text>
+                <Menu
+                  visible={menuVisible[incident.id] || false}
+                  onDismiss={() => toggleMenu(incident.id)}
+                  anchor={
+                    <TouchableOpacity onPress={() => toggleMenu(incident.id)}>
+                      <Text style={styles.menuTrigger}>...</Text>
+                    </TouchableOpacity>
+                  }
+                >
+                  <Menu.Item onPress={() => onDeleteIncident(incident.id)} title="Excluir" />
+                  <Menu.Item onPress={() => startEditing(incident)} title="Editar" />
+                </Menu>
+              </View>
+              <Text style={styles.postTitle}>{incident.title}</Text>
+              <Text style={styles.postDescription}>{incident.description}</Text>
+
+              <Text style={styles.commentsTitle}>Comentários:</Text>
+              {comments[incident.id] && comments[incident.id].length > 0 ? (
+                comments[incident.id].map((comment) => (
+                  <View key={comment.id} style={styles.commentContainer}>
+                    <Avatar.Icon size={40} icon="account" style={styles.commentAvatar} />
+                    <View style={styles.commentContent}>
+                      <Text style={styles.commentDate}>
+                        {new Date(comment.createdAt).toLocaleString()}
+                      </Text>
+                      <Text style={styles.commentText}>{comment.text}</Text>
+                    </View>
+                    <Menu
+                      visible={menuVisible[comment.id] || false}
+                      onDismiss={() => toggleMenu(comment.id)}
+                      anchor={
+                        <TouchableOpacity onPress={() => toggleMenu(comment.id)}>
+                          <Text style={styles.menuTrigger}>...</Text>
+                        </TouchableOpacity>
+                      }
+                    >
+                      <Menu.Item
+                        onPress={() => onDeleteComment(comment, incident.id)}
+                        title="Excluir"
+                      />
+                      <Menu.Item
+                        onPress={() => startEditingComment(comment)}
+                        title="Editar"
+                      />
+                    </Menu>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.noCommentsText}>Sem comentários.</Text>
+              )}
+
+            <Button
+              mode="contained"
+              onPress={() => {
+                setSelectedIncident(incident);
+                setEditingComment(null);
+                setEditingIncident(null);
+              }}
+              style={styles.commentButton}
+            >
               Comentar
             </Button>
-          </Card.Content>
 
-          {/* Comments */}
-          <Card style={styles.commentCard}>
-            <Card.Content style={styles.commentContent}>
-              <Avatar.Text size={32} label="A" style={styles.avatar} />
-              <View>
-                <Text style={styles.commentDate}>Hoje às 10:30</Text>
-                <Text style={styles.commentText}>
-                  Hoje foi um dia que certamente não esquecerei tão cedo.
-                </Text>
-              </View>
-              {/* <IconButton icon="dots-horizontal" size={20} /> */}
             </Card.Content>
           </Card>
-
-          <Card style={styles.commentCard}>
-            <Card.Content style={styles.commentContent}>
-              <Avatar.Text size={32} label="B" style={styles.avatar} />
-              <View>
-                <Text style={styles.commentDate}>Hoje às 10:30</Text>
-                <Text style={styles.commentText}>
-                  Hoje foi um dia que certamente não esquecerei tão cedo.
-                </Text>
-              </View>
-              {/* <IconButton icon="dots-horizontal" size={20} /> */}
-            </Card.Content>
-          </Card>
-        </Card>
+        ))}
       </ScrollView>
 
-      {/* Comment Input */}
-      <View style={styles.commentInputContainer}>
-        <TextInput placeholder="Título" style={styles.input} />
-        <TextInput placeholder="Descrição" style={styles.input} />
-        <Button mode="contained" icon="send" style={styles.sendButton}></Button>
-      </View>
-    </View>
-  );
-};
+      {
+        editingIncident && (
+          <View style={styles.editForm}>
+            <Text style={styles.editFormTitle}>Editar Alerta</Text>
+            <TextInput
+              style={styles.input}
+              value={editingTitle}
+              onChangeText={setEditingTitle}
+              placeholder="Título"
+            />
+            <TextInput
+              style={styles.input}
+              value={editingDescription}
+              onChangeText={setEditingDescription}
+              placeholder="Descrição"
+              multiline
+            />
+            <Button mode="contained" onPress={saveEditedIncident}>
+              Salvar Alterações do alerta
+            </Button>
+            <Button mode="text" onPress={() => setEditingIncident(null)}>
+              Cancelar
+            </Button>
+          </View>
+        )
+      }
 
+      {
+        editingComment && (
+          <View style={styles.editForm}>
+            <Text style={styles.editFormTitle}>Editar Comentário</Text>
+            <TextInput
+              style={styles.input}
+              value={editingCommentText}
+              onChangeText={setEditingCommentText}
+              placeholder="Texto do comentário"
+              multiline
+            />
+            <Button mode="contained" onPress={saveEditedComment}>
+              Salvar Alterações
+            </Button>
+            <Button mode="text" onPress={() => setEditingComment(null)}>
+              Cancelar
+            </Button>
+          </View>
+        )
+      }
+      {/* Formulário de Comentário */}
+      {selectedIncident && (
+        <FormCommentIncident
+          idIncident={selectedIncident.id}
+          onCommentAdded={(newComment) => {
+            setComments((prevComments) => {
+              const updatedComments = { ...prevComments };
+              updatedComments[selectedIncident.id] = [
+                ...(updatedComments[selectedIncident.id] || []),
+                newComment,
+              ];
+              return updatedComments;
+            });
+          }}
+        />
+      )}
+    </View>
+  )
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
   },
-  header: {
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#000",
+  },
+  flexDirectionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#001f4d",
-    paddingTop: 35,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginLeft: 10,
-    marginVertical: 10,
-    marginLeft: 20,
-  },
-  createButton: {
-    width: 180,
-    borderRadius: 5,
-    alignSelf: "center",
-    justifyContent: "center",
-    alignItems: "center",
+    padding: 10,
   },
   postCard: {
+    margin: 10,
+  },
+  postHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 10,
-    padding: 10,
-    borderRadius: 10,
+  },
+  avatar: {
+    marginRight: 10,
+    backgroundColor: "#6200ee",
   },
   postDate: {
     fontSize: 12,
@@ -111,75 +328,52 @@ const styles = StyleSheet.create({
   postTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginTop: 5,
   },
   postDescription: {
-    fontSize: 14,
     marginVertical: 10,
-    color: "#555",
+    fontSize: 14,
+    color: "#333",
   },
-  commentCount: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 10,
+  commentsTitle: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  commentButton: {
-    alignSelf: "flex-start",
-    borderRadius: 5,
-  },
-  commentCard: {
-    marginBottom: 5,
+  commentContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginVertical: 10,
     padding: 10,
-    borderRadius: 10,
-    elevation: 0, 
-    shadowOpacity: 0,
-    shadowColor: 'transparent',
-    
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+  },
+  commentAvatar: {
+    marginRight: 10,
+    backgroundColor: "#03a9f4",
   },
   commentContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderTopColor: 'lightgray',
-    borderTopWidth: 1,
-    marginRight: 30,
+    flex: 1,
   },
-  avatar: {
-    marginRight: 10,
+  commentText: {
+    fontSize: 14,
+    color: "#333",
+    marginTop: 5,
   },
   commentDate: {
     fontSize: 12,
     color: "#888",
   },
-  commentText: {
+  menuTrigger: {
+    fontSize: 18,
+    color: "#000",
+    marginLeft: 10,
+  },
+  noCommentsText: {
     fontSize: 14,
-    color: "#333",
+    color: "#888",
   },
-  commentInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  commentButton: {
     marginTop: 10,
-    backgroundColor: "#fff",
-    padding: 10,
-    borderRadius: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginRight: 5,
-  },
-  sendButton: {
-    borderRadius: 5,
-  },
-
-  flexDirectionRow: {
-    flexDirection: "row",
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
   },
 });
 

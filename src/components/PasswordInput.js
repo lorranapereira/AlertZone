@@ -8,29 +8,22 @@ const PasswordInput = ({ value, setValue, showPassword, setShowPassword }) => {
       style={styles.textInput}
       label="Senha"
       value={value}
+      secureTextEntry
       onChangeText={(text) => setValue(text)}
-      left={
-        <TextInput.Icon
-          name="lock"
-          size={25}
-          color="black"
-        />
-      }
-      secureTextEntry={showPassword}
       right={
         showPassword ? (
           <TextInput.Icon
-            name="eye"
+            icon="eye"
             size={25}
             color="black"
             onPress={() => setShowPassword(!showPassword)}
           />
         ) : (
           <TextInput.Icon
-            name="eye-off"
+            icon="eye-off"
             size={25}
             color="black"
-            onPress={() => setShowPassword(!showPassword)}
+            onPress={() => setShowPassword(showPassword)}
           />
         )
       }

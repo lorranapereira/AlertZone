@@ -27,7 +27,8 @@ const SignIn = ({ navigation }) => {
     try {
       const message = await loginWithEmailAndPassword(email, password); // Chama o serviço
       alert(message);
-      navigation.navigate("Home"); // Navega para a tela Home em caso de sucesso
+      // Correção na navegação para a rota correta
+      navigation.navigate("Main"); // Navega para o DrawerRoutes encapsulado
     } catch (err) {
       const friendlyMessage = translateFirebaseError(err.code); // Tradução do erro
       setError(friendlyMessage);
@@ -37,8 +38,7 @@ const SignIn = ({ navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container}>
         <View style={styles.innerContainer}>
           <Text style={styles.login}>Login</Text>
 
@@ -71,7 +71,6 @@ const SignIn = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    </TouchableWithoutFeedback>
   );
 };
 

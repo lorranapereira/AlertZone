@@ -20,7 +20,8 @@ const DrawerRoutes = () => {
         <Drawer.Navigator
             drawerContent={(props) => <CustomDrawer {...props} />}
             screenOptions={{
-                headerShown: false, // Oculta o cabeçalho padrão
+                headerShown: true,
+                gestureEnabled: true, // Certifique-se de que está ativado
             }}
         >
             <Drawer.Screen name="Home" component={Home} />
@@ -36,7 +37,7 @@ const DrawerRoutes = () => {
 const Routes = () => {
     return (
         <Stack.Navigator>
-            {/* Rota inicial redirecionando para SignIn */}
+            {/* Rotas de autenticação */}
             <Stack.Screen
                 name="SignIn"
                 component={SignIn}
@@ -47,36 +48,11 @@ const Routes = () => {
                 component={SignUp}
                 options={{ headerShown: true, title: "Criar Conta" }}
             />
-            {/* Telas principais acessíveis após autenticação */}
+            {/* Telas principais após autenticação */}
             <Stack.Screen
-                name="Drawer"
+                name="Main"
                 component={DrawerRoutes}
                 options={{ headerShown: false }} // Remove o cabeçalho para o Drawer
-            />
-            <Stack.Screen
-                name="Home"
-                component={DrawerRoutes}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Timeline"
-                component={DrawerRoutes}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Conta"
-                component={DrawerRoutes}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="RelatorioLocal"
-                component={DrawerRoutes}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="RelatorioGeral"
-                component={DrawerRoutes}
-                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );

@@ -8,9 +8,9 @@ const EmailInput = ({value, setValue}) => {
     style={styles.textInput}
     label="E-mail"
     mode="flat" 
-    left={
+    right={
       <TextInput.Icon
-        name="at"
+        icon="at"
         size={25}
         color="black"
       />

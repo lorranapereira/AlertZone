@@ -37,7 +37,6 @@ const SignUp = ({ navigation }) => {
   };
 
   return (
-    <TouchableWithoutFeedback touchSoundDisabled onPress={() => Keyboard.dismiss()}>
       <SafeAreaView style={styles.container}>
         <View style={styles.innerContainer}>
           <Text style={styles.createAccount}>Criar conta</Text>
@@ -70,7 +69,6 @@ const SignUp = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </SafeAreaView>
-    </TouchableWithoutFeedback>
   );
 };
 
