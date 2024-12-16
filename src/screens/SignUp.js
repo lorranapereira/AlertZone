@@ -26,7 +26,7 @@ const SignUp = ({ navigation }) => {
     setError("");
     setIsLoading(true);
     try {
-      const message = await signUpWithEmailAndPassword(email, password); // Chame o serviço
+      const message = await signUpWithEmailAndPassword(email, password, name); // Chame o serviço
       alert(message);
       navigation.navigate("SignIn"); // Navegar para a tela de login após o cadastro
     } catch (err) {

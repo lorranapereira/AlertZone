@@ -12,7 +12,9 @@ import { Button, Text } from "react-native-paper";
 import EmailInput from "../components/EmailInput";
 import PasswordInput from "../components/PasswordInput";
 
-import { loginWithEmailAndPassword, translateFirebaseError } from "../services/authService";
+import { loginWithEmailAndPassword, translateFirebaseError, updateCoord } from "../services/authService";
+import * as Location from "expo-location";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -25,12 +27,26 @@ const SignIn = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      const message = await loginWithEmailAndPassword(email, password); // Chama o serviço
+      
+      const message = await loginWithEmailAndPassword(email, password);
       alert(message);
-      // Correção na navegação para a rota correta
-      navigation.navigate("Main"); // Navega para o DrawerRoutes encapsulado
+      console.log("uuuu");
+
+      const location = await Location.getCurrentPositionAsync({});
+      console.log(await AsyncStorage.getItem("userId"));
+      const { latitude, longitude } = location.coords;
+      console.log( location.coords);
+
+      const userId = await AsyncStorage.getItem("userId");
+      if (userId) {
+        await updateCoord(userId, { latitude, longitude });
+      } else {
+        throw new Error("Usuário não autenticado.");
+      }
+
+      navigation.navigate("Main");
     } catch (err) {
-      const friendlyMessage = translateFirebaseError(err.code); // Tradução do erro
+      const friendlyMessage = translateFirebaseError(err.code);
       setError(friendlyMessage);
     } finally {
       setIsLoading(false);

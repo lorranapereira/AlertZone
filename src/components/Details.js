@@ -25,18 +25,18 @@ const Details = ({ marker, visibleValue, onClose }) => {
       if (marker) {
         const fetchedIncidents = [];
         const fetchedComments = {};
-  
+
         try {
           // Verifica se o objeto `marker` possui a propriedade `incidentId`
           if (marker.incidentId) {
             console.log("Processando o marker:", marker);
-  
+
             // Busca os dados do incidente
             const incident = await getIncident(marker.incidentId);
-  
+
             // Busca os comentários associados ao incidente
             const incidentComments = await getComments(marker.incidentId);
-  
+
             // Adiciona o incidente e os comentários às listas locais
             fetchedIncidents.push({ id: marker.incidentId, ...incident });
             fetchedComments[marker.incidentId] = incidentComments || []; // Garante que seja um array vazio, se não houver comentários
@@ -49,7 +49,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
         console.log("celular!!!");
         console.log("Incidents carregados localmente:", fetchedIncidents);
         console.log("Comments carregados localmente:", fetchedComments);
-  
+
         // Define os estados com os dados carregados
         setIncidents([...fetchedIncidents]);
         setComments({ ...fetchedComments });
@@ -57,20 +57,20 @@ const Details = ({ marker, visibleValue, onClose }) => {
         console.log(comments);
       }
     };
-  
+
     fetchData();
   }, [marker]);
-  
+
   // Adicione useEffect para depurar mudanças em incidents e comments
   useEffect(() => {
     console.log("Incidents atualizados:", incidents);
   }, [incidents]);
-  
+
   useEffect(() => {
     console.log("Comments atualizados:", comments);
   }, [comments]);
-  
-  
+
+
 
   const hideModal = () => {
     setVisible(false);
@@ -113,7 +113,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
   };
 
   const toggleMenu = (id) => {
-    setMenuVisible((prev) => ({ 
+    setMenuVisible((prev) => ({
       ...prev,
       [id]: !prev[id],
     }));
@@ -216,14 +216,14 @@ const Details = ({ marker, visibleValue, onClose }) => {
                       <Avatar.Icon size={40} icon="alert" style={styles.avatar} />
                       <Text style={styles.postDate}>{formatDate(incident.createdAt)}</Text>
                       <Menu
-                          visible={menuVisible[incident.id] || false}
-                          onDismiss={() => toggleMenu(incident.id)}
-                          anchor={
-                            <TouchableOpacity onPress={() => toggleMenu(incident.id)}>
-                              <Text style={styles.menuTrigger}>...</Text>
-                            </TouchableOpacity>
-                          }
-                        >
+                        visible={menuVisible[incident.id] || false}
+                        onDismiss={() => toggleMenu(incident.id)}
+                        anchor={
+                          <TouchableOpacity onPress={() => toggleMenu(incident.id)}>
+                            <Text style={styles.menuTrigger}>...</Text>
+                          </TouchableOpacity>
+                        }
+                      >
                         <Menu.Item onPress={() => onDeleteIncident(incident.id)}
                           title="Excluir"
                         />
@@ -304,7 +304,26 @@ const Details = ({ marker, visibleValue, onClose }) => {
                 </Button>
               </View>
             )}
-
+            {
+              editingComment && (
+                <View style={styles.editForm}>
+                  <Text style={styles.editFormTitle}>Editar Comentário</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={editingCommentText}
+                    onChangeText={setEditingCommentText}
+                    placeholder="Texto do comentário"
+                    multiline
+                  />
+                  <Button mode="contained" onPress={saveEditedComment}>
+                    Salvar Alterações
+                  </Button>
+                  <Button mode="text" onPress={() => setEditingComment(null)}>
+                    Cancelar
+                  </Button>
+                </View>
+              )
+            }
             {selectedIncident && (
               <FormCommentIncident
                 idIncident={selectedIncident.id}

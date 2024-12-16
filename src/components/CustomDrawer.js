@@ -16,10 +16,6 @@ const CustomDrawer = (props) => {
           style={styles.closeIcon}
           onPress={() => props.navigation.closeDrawer()}
         />
-        <View style={styles.profileContainer}>
-          <Avatar.Text size={35} label="AP" />
-          <Title style={styles.userName}>Ana Pereira</Title>
-        </View>
       </View>
 
       {/* Itens do Menu */}

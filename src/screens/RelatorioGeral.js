@@ -1,88 +1,121 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Dimensions, FlatList, TouchableOpacity } from "react-native";
-import { Card, Text, Button, TextInput, IconButton } from "react-native-paper";
+import { Card, Text, Button, IconButton, Menu } from "react-native-paper";
 import { BarChart } from "react-native-chart-kit";
+import { getMonthlyIncidents, getIncidentsByLocation, getDistinctYears } from "../services/incidentService";
 
 const RelatorioGeral = ({ navigation }) => {
-  // Dados do gráfico
-  const chartData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], // Meses
-    datasets: [
-      {
-        data: [500, 700, 800, 650, 900, 1200], // Quantidade de incidentes por mês
-      },
-    ],
+  const [chartData, setChartData] = useState({ labels: [], datasets: [{ data: [] }] });
+  const [tableData, setTableData] = useState([]);
+  const [years, setYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  useEffect(() => {
+    fetchAvailableYears();
+    fetchIncidentData(selectedYear);
+  }, [selectedYear]);
+
+  // Busca os anos distintos na coleção "incidents"
+  const fetchAvailableYears = async () => {
+    try {
+      const distinctYears = await getDistinctYears();
+      setYears(distinctYears);
+      if (distinctYears.length > 0) {
+        setSelectedYear(distinctYears[0]); // Define o primeiro ano como selecionado por padrão
+      }
+    } catch (error) {
+      console.error("Erro ao buscar anos disponíveis:", error.message);
+    }
   };
 
-  // Dados da tabela
-  const tableData = [
-    { estado: "Rio Grande do Sul", quantidade: 350 },
-    { estado: "Santa Catarina", quantidade: 270 },
-    { estado: "Paraná", quantidade: 400 },
-    { estado: "São Paulo", quantidade: 1200 },
-    { estado: "Rio de Janeiro", quantidade: 980 },
-  ];
+  // Busca os dados iniciais com base no ano selecionado
+  const fetchIncidentData = async (year) => {
+    try {
+      // Busca incidentes por mês
+      const monthlyData = await getMonthlyIncidents(year);
 
-  const handleFilter = () => {
-    // Lógica de filtragem futura
-    console.log("Filtragem realizada");
+      // Busca incidentes por localização
+      const locationData = await getIncidentsByLocation();
+
+      // Formata dados do gráfico
+      const months = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      ];
+      const formattedChartData = {
+        labels: months,
+        datasets: [
+          { data: months.map((_, index) => monthlyData[index] || 0) },
+        ],
+      };
+
+      // Formata dados da tabela
+      const formattedTableData = locationData.map((item) => ({
+        estado: `${item.city}/${item.state}`,
+        quantidade: item.totalIncidentes,
+      }));
+
+      setChartData(formattedChartData);
+      setTableData(formattedTableData);
+    } catch (error) {
+      console.error("Erro ao buscar os dados:", error.message);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
-          <IconButton icon="menu" size={24} color="#fff" />
-        </TouchableOpacity>
-      </View>
       <Text style={styles.title}>Relatório Geral Brasil</Text>
-      {/* Filtro por Data */}
+
+      {/* Seletor de Ano */}
       <View style={styles.filterContainer}>
-        <TextInput
-          label="Data Inicial"
-          placeholder="YYYY-MM-DD"
-          style={styles.input}
-          mode="outlined"
-        />
-        <TextInput
-          label="Data Final"
-          placeholder="YYYY-MM-DD"
-          style={styles.input}
-          mode="outlined"
-        />
-        <Button mode="contained" onPress={handleFilter} style={styles.filterButton}>
-          Filtrar
-        </Button>
+        <Menu
+          visible={menuVisible}
+          onDismiss={() => setMenuVisible(false)}
+          anchor={
+            <Button
+              mode="outlined"
+              onPress={() => setMenuVisible(true)}
+              style={styles.yearSelector}
+            >
+              {selectedYear}
+            </Button>
+          }
+        >
+          {years.map((year) => (
+            <Menu.Item
+              key={year}
+              onPress={() => {
+                setSelectedYear(year);
+                setMenuVisible(false);
+              }}
+              title={year.toString()}
+            />
+          ))}
+        </Menu>
       </View>
 
       {/* Gráfico de Barras */}
       <BarChart
         data={chartData}
-        width={Dimensions.get("window").width - 20} // Largura do gráfico
-        height={220} // Altura do gráfico
+        width={Dimensions.get("window").width - 20}
+        height={220}
         yAxisLabel=""
         chartConfig={{
-          backgroundColor: "#1cc910",
           backgroundGradientFrom: "#eff3ff",
           backgroundGradientTo: "#efefef",
           decimalPlaces: 0,
           color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
-          },
+          style: { borderRadius: 16 },
         }}
-        style={{
-          marginVertical: 8,
-          borderRadius: 16,
-        }}
+        style={{ marginVertical: 8, borderRadius: 16 }}
       />
 
       {/* Tabela */}
       <Card style={styles.tableCard}>
         <View style={styles.tableHeader}>
-          <Text style={styles.headerCell}>Estado</Text>
-          <Text style={styles.headerCell}>Quantidade Incidentes</Text>
+          <Text style={styles.headerCell}>Localização</Text>
+          <Text style={styles.headerCell}>Incidentes</Text>
         </View>
         <FlatList
           data={tableData}
@@ -100,65 +133,16 @@ const RelatorioGeral = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#001f4d",
-    paddingTop: 35,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 25,
-  },
-  filterContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-    padding: 20,
-
-  },
-  input: {
-    flex: 1,
-    marginRight: 5,
-  },
-  filterButton: {
-    alignSelf: "flex-end",
-    padding: 5,
-  },
-  tableCard: {
-    marginTop: 20,
-    padding: 10,
-    borderRadius: 10,
-    elevation: 2,
-  },
-  tableHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "#ddd",
-    padding: 10,
-    borderRadius: 5,
-  },
-  headerCell: {
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  tableRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  rowCell: {
-    fontSize: 14,
-  },
+  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  header: { flexDirection: "row", alignItems: "center", backgroundColor: "#001f4d", paddingTop: 35 },
+  title: { fontSize: 20, fontWeight: "bold", textAlign: "center", marginTop: 25 },
+  filterContainer: { padding: 20, alignItems: "center" },
+  yearSelector: { width: 150, marginBottom: 15 },
+  tableCard: { marginTop: 20, padding: 10, borderRadius: 10, elevation: 2 },
+  tableHeader: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#ddd", padding: 10, borderRadius: 5 },
+  headerCell: { fontWeight: "bold", fontSize: 14 },
+  tableRow: { flexDirection: "row", justifyContent: "space-between", padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
+  rowCell: { fontSize: 14 },
 });
 
 export default RelatorioGeral;

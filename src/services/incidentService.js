@@ -1,24 +1,61 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, addDoc, getDocs, getDoc,query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // Certifique-se de ajustar o caminho
+import * as geolib from "geolib"; // Biblioteca para cálculo de distâncias
+import { notification } from "../services/notificationService"; // Função para enviar notificações
 
-export const saveIncident = async (idUser,title, description, latitude, longitude) => {
+export const saveIncident = async (idUser, title, description, latitude, longitude, city, state) => {
   try {
+    // Salva o incidente no Firestore
     const docRef = await addDoc(collection(db, "incidents"), {
       idUser,
       title,
       description,
       latitude,
       longitude,
-      createdAt: new Date().toISOString(), // Salva a data em formato ISO
+      city,
+      state,
+      createdAt: new Date().toISOString(),
     });
     console.log("Documento salvo com ID: ", docRef.id);
+
+    // Busca usuários no Firestore para enviar notificações
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    const nearbyUsers = [];
+
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data();
+
+      if (
+        userData.latitude &&
+        userData.longitude &&
+        geolib.isPointWithinRadius(
+          { latitude: userData.latitude, longitude: userData.longitude },
+          { latitude, longitude },
+          400 // Raio de 400 metros
+        )
+      ) {
+        if (userData.notificationToken) {
+          nearbyUsers.push(userData.notificationToken);
+        }
+      }
+    });
+
+    // Envia notificações para os usuários próximos
+    if (nearbyUsers.length > 0) {
+      await notification(nearbyUsers, "Alguém registrou um alerta na sua região");
+      console.log("Notificações enviadas com sucesso!");
+    } else {
+      console.log("Nenhum usuário encontrado no raio de 400 metros.");
+    }
+
     return docRef.id;
   } catch (e) {
-    console.error("Erro ao salvar incidente: ", e);
+    console.error("Erro ao salvar incidente e enviar notificações: ", e);
     throw e;
   }
 };
+
   
 export const fetchIncidents = async () => {
     try {
@@ -49,7 +86,7 @@ export const deleteIncident = async (incidentId) => {
 export const updateIncident = async (incidentId, data) => {
   try {
       const incidentRef = doc(db, "incidents", incidentId); // Referência ao documento
-      await updateDoc(incidentRef, data); // Atualiza o documento no Firestore
+      await updateDoc(incidentRef, data); // Atualiza o documento no db
       console.log(`Alerta com ID ${incidentId} foi atualizado.`);
   } catch (error) {
       console.error(`Erro ao atualizar o alerta com ID ${incidentId}: `, error);
@@ -100,5 +137,151 @@ export const fetchMarkers = async () => {
   } catch (error) {
     console.error("Erro ao buscar marcadores:", error);
     throw error;
+  }
+};
+
+/**
+ * Retorna os incidentes por mês para o ano fornecido.
+ * @param {number} year - Ano atual ou específico
+ * @returns {Promise<number[]>} - Array com a contagem de incidentes por mês
+ */
+export const getMonthlyIncidents = async (year) => {
+  try {
+    const incidentsRef = collection(db, "incidents");
+    const startOfYear = new Date(`${year}-01-01`);
+    const endOfYear = new Date(`${year}-12-31`);
+
+    const q = query(
+      incidentsRef,
+      where("createdAt", ">=", startOfYear),
+      where("createdAt", "<=", endOfYear)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // Inicializa um array com 12 posições, uma para cada mês
+    const incidentsByMonth = Array(12).fill(0);
+
+    querySnapshot.forEach((doc) => {
+      const incident = doc.data();
+      if (incident.createdAt) {
+        const month = incident.createdAt.toDate().getMonth(); // Índice do mês (0 = Jan, 11 = Dez)
+        incidentsByMonth[month] += 1; // Soma 1 ao mês correspondente
+      }
+    });
+
+    return incidentsByMonth;
+  } catch (error) {
+    console.error("Erro ao buscar incidentes mensais:", error.message);
+    return Array(12).fill(0); // Retorna 0 para todos os meses em caso de erro
+  }
+};
+
+/**
+ * Retorna os incidentes agrupados por localização (city/state).
+ * @returns {Promise<{ city: string, state: string, totalIncidentes: number }[]>}
+ */
+export const getIncidentsByLocation = async () => {
+  try {
+    const incidentsRef = collection(db, "incidents");
+    const querySnapshot = await getDocs(incidentsRef);
+
+    const locationMap = {};
+
+    querySnapshot.forEach((doc) => {
+      const incident = doc.data();
+      const key = `${incident.city}/${incident.state}`;
+
+      if (!locationMap[key]) {
+        locationMap[key] = { city: incident.city, state: incident.state, totalIncidentes: 0 };
+      }
+      locationMap[key].totalIncidentes += 1;
+    });
+
+    return Object.values(locationMap); // Retorna o array formatado
+  } catch (error) {
+    console.error("Erro ao buscar incidentes por localização:", error.message);
+    return []; // Retorna uma lista vazia em caso de erro
+  }
+};
+
+/**
+ * Filtra os incidentes por intervalo de datas.
+ * @param {string} start - Data inicial no formato YYYY-MM-DD
+ * @param {string} end - Data final no formato YYYY-MM-DD
+ * @returns {Promise<{ months: string[], values: number[], locations: { city: string, state: string, totalIncidentes: number }[] }>}
+ */
+export const filterIncidentsByDate = async (start, end) => {
+  try {
+    const incidentsRef = collection(db, "incidents");
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    const q = query(
+      incidentsRef,
+      where("createdAt", ">=", startDate),
+      where("createdAt", "<=", endDate)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    const incidentsByMonth = Array(12).fill(0);
+    const locationMap = {};
+
+    querySnapshot.forEach((doc) => {
+      const incident = doc.data();
+
+      // Contagem mensal
+      if (incident.createdAt) {
+        const month = incident.createdAt.toDate().getMonth();
+        incidentsByMonth[month] += 1;
+      }
+
+      // Contagem por localização
+      const key = `${incident.city}/${incident.state}`;
+      if (!locationMap[key]) {
+        locationMap[key] = { city: incident.city, state: incident.state, totalIncidentes: 0 };
+      }
+      locationMap[key].totalIncidentes += 1;
+    });
+
+    return {
+      months,
+      values: incidentsByMonth,
+      locations: Object.values(locationMap),
+    };
+  } catch (error) {
+    console.error("Erro ao filtrar incidentes:", error.message);
+    return {
+      months: [],
+      values: [],
+      locations: [],
+    };
+  }
+};
+
+export const getDistinctYears = async () => {
+  try {
+    const incidentsRef = collection(db, "incidents");
+    const querySnapshot = await getDocs(incidentsRef);
+
+    const yearsSet = new Set();
+
+    querySnapshot.forEach((doc) => {
+      const incident = doc.data();
+      if (incident.createdAt) {
+        const year = incident.createdAt.toDate().getFullYear();
+        yearsSet.add(year);
+      }
+    });
+
+    // Retorna os anos como um array ordenado
+    return Array.from(yearsSet).sort((a, b) => b - a);
+  } catch (error) {
+    console.error("Erro ao buscar anos distintos:", error.message);
+    return [];
   }
 };

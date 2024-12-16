@@ -25,7 +25,7 @@ const Home = () => {
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
     if (permissionMarker) {
-      setMarkers((prevMarkers) => [...prevMarkers, { incidentId, latitude, longitude }]);
+      setMarkers((prevMarkers) => [...prevMarkers, {latitude, longitude }]);
     }
   };
 
