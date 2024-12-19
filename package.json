@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "npx expo start",
+    "android": "npx expo start --android",
+    "install:legacy": "npm install --legacy-peer-deps",
+    "preinstall": "npm install --legacy-peer-deps"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
