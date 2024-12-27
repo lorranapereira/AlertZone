@@ -80,3 +80,29 @@ export const saveUserNotificationToken = async () => {
     console.error("Erro ao salvar token de notificação:", error.message);
   }
 };
+
+export const notification = async (tokens, message) => {
+  try {
+    if (!tokens || tokens.length === 0) {
+      console.warn("Nenhum token de notificação fornecido.");
+      return;
+    }
+
+    // Envia notificações para todos os usuários com tokens fornecidos
+    const notifications = tokens.map((token) =>
+      Notifications.sendPushNotificationAsync({
+        to: token,
+        sound: "default",
+        title: "Alerta de Incidente",
+        body: message,
+      })
+    );
+
+    // Aguarda o envio de todas as notificações
+    await Promise.all(notifications);
+    console.log("Notificações enviadas com sucesso!");
+  } catch (error) {
+    console.error("Erro ao enviar notificações:", error.message);
+    throw error;
+  }
+};

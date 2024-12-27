@@ -30,7 +30,6 @@ const SignIn = ({ navigation }) => {
       
       const message = await loginWithEmailAndPassword(email, password);
       alert(message);
-      console.log("uuuu");
 
       const location = await Location.getCurrentPositionAsync({});
       console.log(await AsyncStorage.getItem("userId"));
