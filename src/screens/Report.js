@@ -4,7 +4,7 @@ import { Card, Text, Button, IconButton, Menu } from "react-native-paper";
 import { BarChart } from "react-native-chart-kit";
 import { getMonthlyIncidents, getIncidentsByLocation, getDistinctYears } from "../services/incidentService";
 
-const RelatorioGeral = ({ navigation }) => {
+const Report = ({ navigation }) => {
   const [chartData, setChartData] = useState({ labels: [], datasets: [{ data: [] }] });
   const [tableData, setTableData] = useState([]);
   const [years, setYears] = useState([]);
@@ -145,4 +145,4 @@ const styles = StyleSheet.create({
   rowCell: { fontSize: 14 },
 });
 
-export default RelatorioGeral;
+export default Report;
