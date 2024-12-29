@@ -47,14 +47,14 @@ const CustomDrawer = (props) => {
               <Icon name="chart-bar" color={color} size={size} />
             )}
             label="Relatório Geral"
-            onPress={() => props.navigation.navigate("RelatorioGeral")}
+            onPress={() => props.navigation.navigate("Report")}
           />
           <DrawerItem
             icon={({ color, size }) => (
               <Icon name="account" color={color} size={size} />
             )}
             label="Minha Conta"
-            onPress={() => props.navigation.navigate("Conta")}
+            onPress={() => props.navigation.navigate("Account")}
           />
         </Drawer.Section>
       </DrawerContentScrollView>

@@ -4,7 +4,7 @@ import { Avatar, Text, TextInput, Button, IconButton } from "react-native-paper"
 import { updateUserData, deactivateAccount, formatEmail, getUserName } from "../services/authService";
 import { auth } from "../../firebaseConfig";
 
-const Conta = ({ navigation }) => {
+const Account = ({ navigation }) => {
   const [name, setName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -176,4 +176,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Conta;
+export default Account;
