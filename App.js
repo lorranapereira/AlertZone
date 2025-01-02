@@ -1,12 +1,20 @@
 import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider as PaperProvider } from "react-native-paper"; // Provider do react-native-paper
+import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
 import Routes from "./src/routes";
 import { AuthProvider } from "./src/context/authContext"; // Autenticação
 import { MapProvider } from "./src/context/mapContext"; // Autocomplete Map
 import { MarkerProvider } from "./src/context/markerContext"; // Marcadores
 import { requestNotificationPermissions } from "./src/services/notificationService"; // Notificações
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#1E293B', // Altere para a cor desejada
+  },
+};
 
 const App = () => {
   useEffect(() => {
@@ -18,7 +26,7 @@ const App = () => {
   }, []);
 
   return (
-    <PaperProvider>
+    <PaperProvider  theme={theme}>
       <AuthProvider>
         <MapProvider>
           <MarkerProvider>

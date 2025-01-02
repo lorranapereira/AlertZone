@@ -4,7 +4,7 @@ import { db } from "../../firebaseConfig"; // Certifique-se de ajustar o caminho
 import * as geolib from "geolib"; // Biblioteca para cálculo de distâncias
 import { notification } from "../services/notificationService"; // Função para enviar notificações
 
-export const saveIncident = async (idUser, title, description, latitude, longitude, city, state) => {
+export const saveIncident = async (idUser, notificationToken, title, description, latitude, longitude, city, state) => {
   try {
     // Salva o incidente no Firestore
     const docRef = await addDoc(collection(db, "incidents"), {
@@ -25,14 +25,14 @@ export const saveIncident = async (idUser, title, description, latitude, longitu
 
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
-
+      console.log(userData);
       if (
         userData.latitude &&
         userData.longitude &&
         geolib.isPointWithinRadius(
           { latitude: userData.latitude, longitude: userData.longitude },
           { latitude, longitude },
-          400 // Raio de 400 metros
+          1000
         )
       ) {
         if (userData.notificationToken) {
@@ -43,10 +43,10 @@ export const saveIncident = async (idUser, title, description, latitude, longitu
 
     // Envia notificações para os usuários próximos
     if (nearbyUsers.length > 0) {
-      await notification(nearbyUsers, "Alguém registrou um alerta na sua região");
+      await notification(nearbyUsers, "Alguém registrou um alerta na sua região", notificationToken);
       console.log("Notificações enviadas com sucesso!");
     } else {
-      console.log("Nenhum usuário encontrado no raio de 400 metros.");
+      console.log("Nenhum usuário encontrado no raio de 1km.");
     }
 
     return docRef.id;
@@ -148,13 +148,13 @@ export const fetchMarkers = async () => {
 export const getMonthlyIncidents = async (year) => {
   try {
     const incidentsRef = collection(db, "incidents");
-    const startOfYear = new Date(`${year}-01-01`);
-    const endOfYear = new Date(`${year}-12-31`);
+    const startOfYear = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endOfYear = new Date(`${year}-12-31T23:59:59.999Z`);
 
     const q = query(
       incidentsRef,
-      where("createdAt", ">=", startOfYear),
-      where("createdAt", "<=", endOfYear)
+      where("createdAt", ">=", startOfYear.toISOString()),
+      where("createdAt", "<=", endOfYear.toISOString())
     );
 
     const querySnapshot = await getDocs(q);
@@ -165,8 +165,13 @@ export const getMonthlyIncidents = async (year) => {
     querySnapshot.forEach((doc) => {
       const incident = doc.data();
       if (incident.createdAt) {
-        const month = incident.createdAt.toDate().getMonth(); // Índice do mês (0 = Jan, 11 = Dez)
-        incidentsByMonth[month] += 1; // Soma 1 ao mês correspondente
+        // Converte o `createdAt` para um objeto `Date`
+        const date = new Date(incident.createdAt);
+
+        if (!isNaN(date.getTime())) { // Verifica se a data é válida
+          const month = date.getMonth(); // Índice do mês (0 = Jan, 11 = Dez)
+          incidentsByMonth[month] += 1; // Incrementa o contador do mês correspondente
+        }
       }
     });
 
@@ -176,6 +181,7 @@ export const getMonthlyIncidents = async (year) => {
     return Array(12).fill(0); // Retorna 0 para todos os meses em caso de erro
   }
 };
+
 
 /**
  * Retorna os incidentes agrupados por localização (city/state).
@@ -262,7 +268,6 @@ export const filterIncidentsByDate = async (start, end) => {
     };
   }
 };
-
 export const getDistinctYears = async () => {
   try {
     const incidentsRef = collection(db, "incidents");
@@ -273,8 +278,20 @@ export const getDistinctYears = async () => {
     querySnapshot.forEach((doc) => {
       const incident = doc.data();
       if (incident.createdAt) {
-        const year = incident.createdAt.toDate().getFullYear();
-        yearsSet.add(year);
+        let year;
+
+        // Verifica se `createdAt` é um Timestamp do Firestore
+        if (typeof incident.createdAt.toDate === "function") {
+          year = incident.createdAt.toDate().getFullYear();
+        }
+        // Verifica se `createdAt` é uma string ISO
+        else if (typeof incident.createdAt === "string") {
+          year = new Date(incident.createdAt).getFullYear();
+        }
+
+        if (year) {
+          yearsSet.add(year);
+        }
       }
     });
 

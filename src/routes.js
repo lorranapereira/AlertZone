@@ -6,9 +6,8 @@ import Home from "./screens/Home";
 import Timeline from "./screens/Timeline";
 import SignIn from "./screens/SignIn";
 import SignUp from "./screens/SignUp";
-import Conta from "./screens/Conta";
-import RelatorioLocal from "./screens/RelatorioLocal";
-import RelatorioGeral from "./screens/RelatorioGeral";
+import Account from "./screens/Account";
+import Report from "./screens/Report";
 import CustomDrawer from "./components/CustomDrawer";
 
 const Stack = createNativeStackNavigator();
@@ -26,9 +25,8 @@ const DrawerRoutes = () => {
         >
             <Drawer.Screen name="Home" component={Home} />
             <Drawer.Screen name="Timeline" component={Timeline} />
-            <Drawer.Screen name="Conta" component={Conta} />
-            <Drawer.Screen name="RelatorioLocal" component={RelatorioLocal} />
-            <Drawer.Screen name="RelatorioGeral" component={RelatorioGeral} />
+            <Drawer.Screen name="Account" component={Account} />
+            <Drawer.Screen name="Report" component={Report} />
         </Drawer.Navigator>
     );
 };
@@ -46,7 +44,7 @@ const Routes = () => {
             <Stack.Screen
                 name="SignUp"
                 component={SignUp}
-                options={{ headerShown: true, title: "Criar Conta" }}
+                options={{ headerShown: true, title: "Criar Account" }}
             />
             {/* Telas principais após autenticação */}
             <Stack.Screen

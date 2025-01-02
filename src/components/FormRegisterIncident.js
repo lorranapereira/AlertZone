@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, View, TextInput, TouchableOpacity, Alert, Text } from "react-native";
-import { IconButton } from "react-native-paper";
+import React, { useState, useContext, useEffect } from "react";
+import { StyleSheet, View, TouchableOpacity, Platform, Alert, Text } from "react-native";
+import { TextInput, IconButton } from "react-native-paper";
 import { saveIncident } from "../services/incidentService"; // Ajuste o caminho para o serviço
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AuthContext from "../context/authContext";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 
-const FormRegisterIncident = ({ region }) => {
+const FormRegisterIncident = ({ region, onClose }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [locationDetails, setLocationDetails] = useState({ city: "", state: "" });
+  const { userData } = useContext(AuthContext); // Consumindo o AuthContext
+  const { id, notificationToken } = userData;
 
-  
 
   // Chama a função para buscar a cidade sempre que o `region` mudar
   useEffect(() => {
@@ -44,7 +46,7 @@ const FormRegisterIncident = ({ region }) => {
           "Sergipe": "SE",
           "Tocantins": "TO"
         };
-        
+
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${region.latitude}&lon=${region.longitude}`,
@@ -54,16 +56,16 @@ const FormRegisterIncident = ({ region }) => {
               }
             }
           );
-        
+
           if (response.ok) {
             const data = await response.json();
-        
+
             const city = data.address.city || data.address.town || data.address.village || "Desconhecida";
             const stateFullName = data.address.state || "Estado desconhecido";
-        
+
             // Busca a sigla do estado no mapeamento
             const state = stateToAbbreviation[stateFullName] || "UF desconhecida";
-        
+
             setLocationDetails({ city, state });
           } else {
             Alert.alert("Erro", "Não foi possível obter os detalhes da localização.");
@@ -74,9 +76,10 @@ const FormRegisterIncident = ({ region }) => {
         }
       }
     };
-  
+
     fetchLocationDetails();
   }, [region]);
+
 
   const handleSend = async () => {
     console.log(title);
@@ -92,11 +95,11 @@ const FormRegisterIncident = ({ region }) => {
     }
 
     try {
-      const idUser = await AsyncStorage.getItem("userId"); // Recupera o ID do usuário
-      await saveIncident(idUser, title, description, region.latitude, region.longitude, locationDetails.city, locationDetails.state); // Envia a cidade
+      await saveIncident(id, notificationToken, title, description, region.latitude, region.longitude, locationDetails.city, locationDetails.state); // Envia a cidade
       Alert.alert("Sucesso", "Incidente salvo com sucesso!");
       setTitle("");
       setDescription("");
+      onClose();
     } catch (error) {
       Alert.alert("Erro", "Não foi possível salvar o incidente. Tente novamente.");
     }
@@ -104,35 +107,57 @@ const FormRegisterIncident = ({ region }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <Icon
+          name="close" 
+          color="rgb(253, 128, 3)"
+          size={24}
+        />
+      </TouchableOpacity>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
           placeholder="Título"
           placeholderTextColor="#999"
           value={title}
+          maxLength={30}
           onChangeText={setTitle}
         />
       </View>
-
+      {title.length == 30 && (
+        <Text style={styles.errorText}>
+          Limite máximo de 30 caracteres atingido no título.
+        </Text>
+      )}
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.inputDescription}
-          placeholder="Descrição"
+          placeholder="Descrição do incidente"
           placeholderTextColor="#999"
           value={description}
           onChangeText={setDescription}
           multiline
+          numberOfLines={20}
+          maxLength={100}
+          style={[styles.input, { height: 100 }]}
+          contentStyle={{
+            textAlignVertical: 'top', // Alinha o texto ao topo no Android
+            paddingTop: Platform.OS === 'ios' ? 10 : 0, // Ajusta padding no topo para iOS
+          }}
         />
-      </View>
-
-      <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
-          <IconButton
-            icon="send" // Ícone de aviãozinho de papel no MaterialCommunityIcons
-            color="#FFF" // Cor do ícone
+        <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
+          <Icon
+            name="send" // Ícone de aviãozinho de papel no MaterialCommunityIcons
+            color="rgb(253, 128, 3)" // Cor hexadecimal equivalente
             size={24} // Tamanho do ícone
             style={styles.button}
           />
         </TouchableOpacity>
+      </View>
+      {description.length == 100 && (
+        <Text style={styles.errorText}>
+          Limite máximo de 100 caracteresatingido na descrição.
+        </Text>
+      )}
     </View>
   );
 };
@@ -140,16 +165,30 @@ const FormRegisterIncident = ({ region }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#1E293B", // Fundo azul escuro
+    paddingTop: 50,
     padding: 20,
     borderRadius: 10,
+  },
+  errorText: {
+    alignSelf: "flex-start",
+    color: 'red',
+    textAlign: 'right',
+    marginTop: 4,
+    marginBottom: 14,
+    fontSize:10
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5", // Cor clara para o campo de texto
-    borderRadius: 20,
     marginBottom: 15,
     paddingHorizontal: 15,
+    paddingHorizontal:0,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 1, // Garante que o botão fique acima dos outros elementos
   },
   input: {
     flex: 1,
@@ -159,9 +198,10 @@ const styles = StyleSheet.create({
   },
   inputDescription: {
     flex: 1,
+    margin:0,
     fontSize: 16,
     color: "#000",
-    height: "80%",
+    textAlignVertical: 'top',
   },
   cityText: {
     color: "#FFF",
@@ -169,10 +209,10 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginLeft: 10,
+    top: 30,
   },
   button: {
     alignSelf: "center",
-    backgroundColor: "#6200ee",
   },
 });
 

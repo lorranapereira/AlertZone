@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { StyleSheet, View, TextInput, TouchableOpacity, Alert } from "react-native";
-import { IconButton } from "react-native-paper";
+import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { saveComment } from "../services/commentService"; // Ajuste o caminho para o serviço
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { TextInput } from "react-native-paper";
 
-const FormCommentIncident = ({ idIncident, onCommentAdded }) => {
+const FormCommentIncident = ({ idIncident, onClose, onCommentAdded }) => {
   const [description, setDescription] = useState("");
 
   const handleSend = async () => {
@@ -23,6 +24,7 @@ const FormCommentIncident = ({ idIncident, onCommentAdded }) => {
       if (onCommentAdded) {
         onCommentAdded(newComment);
       }
+      onClose();
     } catch (error) {
       console.error("Erro ao salvar comentário: ", error);
       Alert.alert("Erro", "Não foi possível salvar o comentário. Tente novamente.");
@@ -31,6 +33,13 @@ const FormCommentIncident = ({ idIncident, onCommentAdded }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <Icon
+          name="close" 
+          color="rgb(253, 128, 3)"
+          size={24}
+        />
+      </TouchableOpacity>
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.inputDescription}
@@ -41,10 +50,10 @@ const FormCommentIncident = ({ idIncident, onCommentAdded }) => {
           multiline
         />
         <TouchableOpacity style={styles.iconButton} onPress={handleSend}>
-          <IconButton
-            icon="send" // Ícone de aviãozinho de papel no MaterialCommunityIcons
-            color="#FFF" // Cor do ícone
-            size={24} // Tamanho do ícone
+          <Icon
+            name="send" 
+            color="rgb(253, 128, 3)"
+            size={24}
             style={styles.button}
           />
         </TouchableOpacity>
@@ -56,16 +65,20 @@ const FormCommentIncident = ({ idIncident, onCommentAdded }) => {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#1E293B", // Fundo azul escuro
+    paddingTop: 40,
     padding: 20,
     borderRadius: 10,
+  },
+  closeButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 1, // Garante que o botão fique acima dos outros elementos
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F5F5F5", // Cor clara para o campo de texto
-    borderRadius: 20,
     marginBottom: 15,
-    paddingHorizontal: 15,
   },
   inputDescription: {
     flex: 1,

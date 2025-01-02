@@ -1,7 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { updateProfile } from "firebase/auth";
 import { auth, db } from "../../firebaseConfig";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, getDocs, collection } from "firebase/firestore";
 
 // Configurações padrão para lidar com notificações no background
 Notifications.setNotificationHandler({
@@ -12,50 +12,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Função para solicitar permissões e configurar notificações
-export const requestNotificationPermissions = async () => {
-  try {
-    // Solicita permissões para notificações
-    const { status } = await Notifications.requestPermissionsAsync();
-
-    if (status !== "granted") {
-      console.warn("Permissão de notificações não concedida.");
-      return null;
-    }
-
-    console.log("Permissões concedidas para notificações locais.");
-    return true; // Indica que as permissões foram concedidas
-  } catch (error) {
-    console.error("Erro ao solicitar permissões para notificações:", error);
-    throw error;
-  }
-};
-
-// Função para agendar uma notificação local
-export const scheduleLocalNotification = async (title, body, delayInSeconds = 5) => {
-  try {
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: title || "Notificação",
-        body: body || "Essa é uma notificação local.",
-      },
-      trigger: {
-        seconds: delayInSeconds, // Tempo em segundos para disparar a notificação
-      },
-    });
-
-    console.log("Notificação local agendada com ID:", notificationId);
-    return notificationId;
-  } catch (error) {
-    console.error("Erro ao agendar notificação local:", error);
-    throw error;
-  }
-};
-
+// Função para salvar o token de notificação no Firestore
 export const saveUserNotificationToken = async () => {
   try {
     const user = auth.currentUser;
-
     if (!user) throw new Error("Usuário não autenticado.");
 
     const { status } = await Notifications.requestPermissionsAsync();
@@ -66,13 +26,11 @@ export const saveUserNotificationToken = async () => {
 
     const token = (await Notifications.getExpoPushTokenAsync()).data;
 
-    // Salva o token no Firestore com latitude/longitude padrão (ajuste conforme necessário)
+    // Salva o token no Firestore
     const userRef = doc(db, "users", user.uid);
     await setDoc(userRef, {
       email: user.email,
       notificationToken: token,
-      latitude: null, // Adicione a localização real
-      longitude: null,
     });
 
     console.log("Token de notificação salvo no Firestore!");
@@ -81,28 +39,87 @@ export const saveUserNotificationToken = async () => {
   }
 };
 
-export const notification = async (tokens, message) => {
+// Função para enviar notificações remotas via Expo Push Notification Service (EPN)
+export const notification = async (tokens, message, currentUserToken) => {
   try {
     if (!tokens || tokens.length === 0) {
       console.warn("Nenhum token de notificação fornecido.");
       return;
     }
 
-    // Envia notificações para todos os usuários com tokens fornecidos
-    const notifications = tokens.map((token) =>
-      Notifications.sendPushNotificationAsync({
-        to: token,
-        sound: "default",
-        title: "Alerta de Incidente",
-        body: message,
-      })
-    );
+    // Filtra o token do usuário atual para não enviar notificações a ele
+    const filteredTokens = tokens.filter((token) => token !== currentUserToken);
 
-    // Aguarda o envio de todas as notificações
-    await Promise.all(notifications);
+    if (filteredTokens.length === 0) {
+      console.log("Nenhum destinatário válido para notificações.");
+      return;
+    }
+
+    // Prepara mensagens para o Expo Push Notification Service
+    const expoMessages = filteredTokens.map((token) => ({
+      to: token,
+      sound: "default",
+      title: "Alerta de Incidente",
+      body: message,
+    }));
+
+    // Envia notificações para o EPN
+    const response = await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(expoMessages),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro na API Expo Push Notification: ${response.statusText}`);
+    }
+
     console.log("Notificações enviadas com sucesso!");
   } catch (error) {
     console.error("Erro ao enviar notificações:", error.message);
+    throw error;
+  }
+};
+
+// Função para emitir um alerta
+export const emitAlert = async (alertDetails) => {
+  try {
+    const { title, description, latitude, longitude, city, state } = alertDetails;
+
+    // Salva o incidente no Firestore
+    const user = auth.currentUser;
+    if (!user) throw new Error("Usuário não autenticado.");
+
+    const alertRef = doc(collection(db, "incidents"));
+    await setDoc(alertRef, {
+      idUser: user.uid,
+      title,
+      description,
+      latitude,
+      longitude,
+      city,
+      state,
+      createdAt: new Date().toISOString(),
+    });
+
+    console.log("Alerta salvo com sucesso!");
+
+    // Obtem tokens de notificação de outros usuários
+    const usersSnapshot = await getDocs(collection(db, "users"));
+    const tokens = [];
+
+    usersSnapshot.forEach((doc) => {
+      const userData = doc.data();
+      if (userData.notificationToken) {
+        tokens.push(userData.notificationToken);
+      }
+    });
+    // Envia notificações para os usuários (exceto o atual)
+    await notification(tokens, `Um alerta foi emitido em ${city}/${state}.`, user.notificationToken);
+  } catch (error) {
+    console.error("Erro ao emitir alerta:", error.message);
     throw error;
   }
 };

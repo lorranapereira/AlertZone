@@ -1,20 +1,22 @@
-import React, { useState } from "react";
+// src/screens/SignIn.js
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Keyboard,
   TouchableWithoutFeedback,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, Text } from "react-native-paper";
+import { Button, Text, TextInput as PaperTextInput } from "react-native-paper";
 
 import EmailInput from "../components/EmailInput";
 import PasswordInput from "../components/PasswordInput";
 
 import { loginWithEmailAndPassword, translateFirebaseError, updateCoord } from "../services/authService";
 import * as Location from "expo-location";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AuthContext from "../context/authContext"; // Certifique-se que o caminho está correto
 
 const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -22,38 +24,58 @@ const SignIn = ({ navigation }) => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const { userData } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (userData) {
+      navigation.navigate("Main");
+    }
+  }, [userData]);
+
   const handleSignIn = async () => {
     setError("");
     setIsLoading(true);
 
     try {
-      
-      const message = await loginWithEmailAndPassword(email, password);
+      // Realiza o login
+      const { message, user } = await loginWithEmailAndPassword(email, password);
       alert(message);
 
-      const location = await Location.getCurrentPositionAsync({});
-      console.log(await AsyncStorage.getItem("userId"));
-      const { latitude, longitude } = location.coords;
-      console.log( location.coords);
+      // Solicita permissões de localização
+      console.log("Solicitando permissões...");
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      console.log("Permissões concedidas: ", status);
+      
+      if (status === "granted") {
+        console.log("Obtendo localização...");
+        const location = await Location.getCurrentPositionAsync({});
+        console.log("Localização obtida: ", location);
+        const { latitude, longitude } = location.coords;
 
-      const userId = await AsyncStorage.getItem("userId");
-      if (userId) {
-        await updateCoord(userId, { latitude, longitude });
+        // Atualiza as coordenadas no Firestore usando o usuário retornado
+        if (user && user.uid) {
+          await updateCoord(user.uid, { latitude, longitude });
+        } else {
+          throw new Error("Usuário não autenticado.");
+        }
+        console.log("Coordenadas atualizadas.");
       } else {
-        throw new Error("Usuário não autenticado.");
+        console.log("Permissão de localização negada.");
       }
-
-      navigation.navigate("Main");
     } catch (err) {
-      const friendlyMessage = translateFirebaseError(err.code);
+      console.error(err);
+      // Se o erro não tiver o campo 'code', forneça uma mensagem padrão
+      const friendlyMessage = err.code ? translateFirebaseError(err.code) : err.message;
       setError(friendlyMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
+
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
           <Text style={styles.login}>Login</Text>
 
@@ -85,7 +107,8 @@ const SignIn = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 };
 

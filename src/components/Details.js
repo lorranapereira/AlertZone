@@ -15,12 +15,15 @@ const Details = ({ marker, visibleValue, onClose }) => {
   const [editingDescription, setEditingDescription] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState("");
-
+  const [userId, setUserId]= useState(null);
+  const [isAdmin, setIsAdmin]= useState(null);
   const [menuVisible, setMenuVisible] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log("!!!");
+
+      setUserId(await AsyncStorage.getItem("userId"));
+      setIsAdmin(await AsyncStorage.getItem("isAdmin"));
 
       if (marker) {
         const fetchedIncidents = [];
@@ -215,6 +218,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
                     <View style={styles.postHeader}>
                       <Avatar.Icon size={40} icon="alert" style={styles.avatar} />
                       <Text style={styles.postDate}>{formatDate(incident.createdAt)}</Text>
+                      {(isAdmin != "false" || incident.idUser == userId) && (
                       <Menu
                         visible={menuVisible[incident.id] || false}
                         onDismiss={() => toggleMenu(incident.id)}
@@ -227,8 +231,11 @@ const Details = ({ marker, visibleValue, onClose }) => {
                         <Menu.Item onPress={() => onDeleteIncident(incident.id)}
                           title="Excluir"
                         />
-                        <Menu.Item onPress={() => startEditing(incident)} title="Editar" />
+                        {incident.idUser == userId && (
+                          <Menu.Item onPress={() => startEditing(incident)} title="Editar" />
+                        )}
                       </Menu>
+                    )}
                     </View>
                     <Text style={styles.postTitle}>{incident.title}</Text>
                     <Text style={styles.postDescription}>{incident.description}</Text>
@@ -244,6 +251,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
                             </Text>
                             <Text style={styles.commentText}>{comment.text}</Text>
                           </View>
+                          {(isAdmin != "false" || comment.idUser == userId) && (
                           <Menu
                             visible={menuVisible[comment.id] || false}
                             onDismiss={() => toggleMenu(comment.id)}
@@ -257,11 +265,14 @@ const Details = ({ marker, visibleValue, onClose }) => {
                               onPress={() => onDeleteComment(comment, incident.id)}
                               title="Excluir"
                             />
+                            {comment.idUser == userId && (
                             <Menu.Item
                               onPress={() => startEditingComment(comment)}
                               title="Editar"
                             />
+                          )}
                           </Menu>
+                          )}
                         </View>
                       ))
                     ) : (

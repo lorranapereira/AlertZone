@@ -39,14 +39,7 @@ const CustomDrawer = (props) => {
             icon={({ color, size }) => (
               <Icon name="chart-bar" color={color} size={size} />
             )}
-            label="Relatório Local"
-            onPress={() => props.navigation.navigate("RelatorioLocal")}
-          />
-          <DrawerItem
-            icon={({ color, size }) => (
-              <Icon name="chart-bar" color={color} size={size} />
-            )}
-            label="Relatório Geral"
+            label="Relatório"
             onPress={() => props.navigation.navigate("Report")}
           />
           <DrawerItem
@@ -64,7 +57,7 @@ const CustomDrawer = (props) => {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: "#001f4d",
+    backgroundColor: "#1E293B",
     paddingVertical: 30,
     paddingHorizontal: 20,
     position: "relative",

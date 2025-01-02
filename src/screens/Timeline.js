@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect,useContext, useState } from "react";
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { Button, Card, Avatar, Menu } from "react-native-paper";
 import { fetchIncidents, deleteIncident, updateIncident } from "../services/incidentService"; // Importa o getComments correto
 import { updateComment, getComments, deleteComment } from "../services/commentService"; // Importa o getComments correto
 import FormCommentIncident from "../components/FormCommentIncident";
 import { TextInput } from "react-native-paper";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import AuthContext from "../context/authContext";
 
 const Timeline = () => {
   const [incidents, setIncidents] = useState([]);
@@ -16,15 +18,17 @@ const Timeline = () => {
   const [editingComment, setEditingComment] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState("");
   const [selectedIncident, setSelectedIncident] = useState(null);
-
+  const { userData } = useContext(AuthContext); // Consumindo o AuthContext
+  const { userId, isAdmin } = userData;
   // Fetch initial data
   useEffect(() => {
+    
     const getIncidents = async () => {
       try {
         const data = await fetchIncidents();
+
         setIncidents(data);
 
-        // Fetch comments for each incident
         const commentsData = {};
         for (const incident of data) {
           const incidentComments = await getComments(incident.id);
@@ -45,6 +49,11 @@ const Timeline = () => {
       ...prev,
       [id]: !prev[id],
     }));
+  };
+
+  const handleCloseForm = () => {
+    // Função para fechar o formulário
+    setSelectedIncident(null);
   };
 
   // Start editing an incident
@@ -80,6 +89,17 @@ const Timeline = () => {
     } catch (error) {
       console.error("Erro ao editar o alerta:", error);
     }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${day}/${month}/${year} às ${hours}:${minutes}`;
   };
 
   // Delete an incident
@@ -148,17 +168,24 @@ const Timeline = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerTitle}>Alertas!</Text>
-
       <ScrollView>
+        <Text style={styles.headerTitle}>Alertas   
+        <Icon 
+          name="alert"
+          size={24} 
+          color="rgb(253, 128, 3)"
+          style={styles.icon}
+        />
+        </Text>
         {incidents.map((incident) => (
           <Card style={styles.postCard} key={incident.id}>
             <Card.Content>
               <View style={styles.postHeader}>
                 <Avatar.Icon size={40} icon="alert" style={styles.avatar} />
                 <Text style={styles.postDate}>
-                  {new Date(incident.createdAt).toLocaleString()}
+                  {formatDate(incident.createdAt)}
                 </Text>
+                {(isAdmin != "false" || incident.idUser == userId) && (
                 <Menu
                   visible={menuVisible[incident.id] || false}
                   onDismiss={() => toggleMenu(incident.id)}
@@ -169,8 +196,12 @@ const Timeline = () => {
                   }
                 >
                   <Menu.Item onPress={() => onDeleteIncident(incident.id)} title="Excluir" />
+
+                {incident.idUser == userId && (
                   <Menu.Item onPress={() => startEditing(incident)} title="Editar" />
+                )}
                 </Menu>
+              )}
               </View>
               <Text style={styles.postTitle}>{incident.title}</Text>
               <Text style={styles.postDescription}>{incident.description}</Text>
@@ -182,10 +213,12 @@ const Timeline = () => {
                     <Avatar.Icon size={40} icon="account" style={styles.commentAvatar} />
                     <View style={styles.commentContent}>
                       <Text style={styles.commentDate}>
-                        {new Date(comment.createdAt).toLocaleString()}
+                        {formatDate(comment.createdAt)}
                       </Text>
                       <Text style={styles.commentText}>{comment.text}</Text>
                     </View>
+                    {console.log(comment.idUser)}
+                    {(isAdmin != "false" || comment.idUser == userId) && (
                     <Menu
                       visible={menuVisible[comment.id] || false}
                       onDismiss={() => toggleMenu(comment.id)}
@@ -199,11 +232,14 @@ const Timeline = () => {
                         onPress={() => onDeleteComment(comment, incident.id)}
                         title="Excluir"
                       />
+                      {comment.idUser == userId && (
                       <Menu.Item
                         onPress={() => startEditingComment(comment)}
                         title="Editar"
                       />
+                    )}
                     </Menu>
+                    )}
                   </View>
                 ))
               ) : (
@@ -278,6 +314,7 @@ const Timeline = () => {
       {selectedIncident && (
         <FormCommentIncident
           idIncident={selectedIncident.id}
+          onClose={handleCloseForm} 
           onCommentAdded={(newComment) => {
             setComments((prevComments) => {
               const updatedComments = { ...prevComments };
@@ -299,6 +336,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   headerTitle: {
+    padding: 10,
     fontSize: 24,
     fontWeight: "bold",
     color: "#000",
@@ -346,6 +384,7 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: "#f9f9f9",
     borderRadius: 8,
+    position: 'relative', // Adicionado para posicionamento absoluto do menu
   },
   commentAvatar: {
     marginRight: 10,
@@ -353,6 +392,8 @@ const styles = StyleSheet.create({
   },
   commentContent: {
     flex: 1,
+    // Para garantir que o conteúdo não fique atrás do menu
+    paddingRight: 30, // Ajuste conforme necessário
   },
   commentText: {
     fontSize: 14,
@@ -364,9 +405,10 @@ const styles = StyleSheet.create({
     color: "#888",
   },
   menuTrigger: {
+    right: -130,                // Posiciona o menu no canto direito
     fontSize: 18,
     color: "#000",
-    marginLeft: 10,
+
   },
   noCommentsText: {
     fontSize: 14,
@@ -374,6 +416,29 @@ const styles = StyleSheet.create({
   },
   commentButton: {
     marginTop: 10,
+  },
+  editForm: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    elevation: 5,
+  },
+  editFormTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#000',
+  },
+  input: {
+    backgroundColor: '#f6f6f6',
+    marginBottom: 12,
+    padding: 8,
+    borderRadius: 4,
   },
 });
 

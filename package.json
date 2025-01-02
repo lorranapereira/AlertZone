@@ -4,9 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "npx expo start",
-    "android": "npx expo start --android",
-    "install:legacy": "npm install --legacy-peer-deps",
-    "preinstall": "npm install --legacy-peer-deps"
+    "android": "npx expo start --android"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.0",
@@ -23,12 +21,12 @@
     "@react-navigation/native-stack": "^7.0.3",
     "@react-navigation/stack": "^7.0.18",
     "axios": "^1.7.9",
+    "copy-paste": "^1.5.3",
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.6",
     "expo": "~52.0.7",
     "expo-location": "~18.0.4",
     "expo-notifications": "^0.29.11",
-    "expo-permissions": "^14.4.0",
     "expo-status-bar": "~2.0.0",
     "firebase": "^11.1.0",
     "geolib": "^3.3.4",

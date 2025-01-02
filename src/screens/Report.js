@@ -21,6 +21,8 @@ const Report = ({ navigation }) => {
     try {
       const distinctYears = await getDistinctYears();
       setYears(distinctYears);
+      console.log("monthlyData");
+
       if (distinctYears.length > 0) {
         setSelectedYear(distinctYears[0]); // Define o primeiro ano como selecionado por padrão
       }
@@ -34,7 +36,7 @@ const Report = ({ navigation }) => {
     try {
       // Busca incidentes por mês
       const monthlyData = await getMonthlyIncidents(year);
-
+      console.log(monthlyData);
       // Busca incidentes por localização
       const locationData = await getIncidentsByLocation();
 
