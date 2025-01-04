@@ -9,20 +9,31 @@ const Home = () => {
   const [existingMarkers, setExistingMarkers] = useState([]); // Marcadores do Firestore
   const [newMarker, setNewMarker] = useState(null); // Novo marcador do usuário
   const [permissionMarker, setPermissionMarker] = useState(false); // Permissão para adicionar marcador
-
+  const [showContent, setShowContent] = useState(true); // Estado para controlar a visibilidade
   useEffect(() => {
-    // Buscar marcadores salvos no Firestore quando o componente monta
-    const loadMarkers = async () => {
+    // Escutar marcadores salvos no Firestore em tempo real
+    const loadMarkers = () => {
       try {
-        const fetchedMarkers = await fetchMarkers();
-        setExistingMarkers(fetchedMarkers);
+        // Escuta os marcadores em tempo real
+        const unsubscribe = fetchMarkers((fetchedMarkers) => {
+          setExistingMarkers(fetchedMarkers);
+        });
+  
+        // Retorna a função de limpeza para interromper a escuta
+        return unsubscribe;
       } catch (error) {
         Alert.alert("Erro", "Não foi possível carregar os marcadores.");
       }
     };
-
-    loadMarkers();
+  
+    const unsubscribe = loadMarkers();
+  
+    // Limpeza ao desmontar o componente
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
+  
 
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -66,14 +77,16 @@ const Home = () => {
     setNewMarker(null);
     setPermissionMarker(false);
   };
-
+  
   return (
     <View style={styles.container}>
       <Map
         onMapPress={handleMapPress}
         markers={[...existingMarkers, ...(newMarker ? [newMarker] : [])]} // Combina marcadores existentes com o novo
+        onMarkerPress={() => setShowContent(false)}
+        onModalClose={() => setShowContent(true)} // Restaura o conteúdo principal
       />
-      {permissionMarker && newMarker ? (
+      {showContent && (permissionMarker && newMarker ? (
         <FormRegisterIncident
           region={newMarker}
           onClose={handleCloseForm} 
@@ -96,6 +109,7 @@ const Home = () => {
             </TouchableOpacity>
           </View>
         </View>
+        )
       )}
     </View>
   );
@@ -105,7 +119,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   buttonContainer: {
     position: "absolute",
-    bottom: 2, // Espaço do fundo
+    bottom: 0.1, // Espaço do fundo
     alignItems: "center",
     zIndex: 10,
     width: "100%",
@@ -117,7 +131,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     width: "100%",
     height: 100,
-    borderRadius: 10,
   },
   button: {
     backgroundColor: "#D1D5DB",

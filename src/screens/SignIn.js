@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Keyboard,
   TouchableWithoutFeedback,
-  ScrollView,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, Text, TextInput as PaperTextInput } from "react-native-paper";
@@ -77,8 +77,11 @@ const SignIn = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
+          <Image
+            source={require("../../assets/logo.png")} // Substitua pelo caminho do seu logo
+            style={styles.headerLogo}
+          />
           <Text style={styles.login}>Login</Text>
-
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <EmailInput value={email} setValue={setEmail} />
@@ -130,19 +133,22 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
+  headerLogo: {
+    alignSelf: "center", // Centraliza a logo no contêiner pai
+    resizeMode: "contain",
+    marginBottom: 20, // Espaço abaixo da logo
+  },  
   login: {
-    fontSize: 32,
-    fontWeight: "bold",
+    fontSize: 22,
     marginBottom: 20,
-    textAlign: "center",
   },
   loginButton: {
-    marginTop: 20,
+    marginVertical: 10,
     paddingVertical: 10,
   },
   createAccountText: {
     fontWeight: "bold",
-    color: "#6200ee",
+    color: "rgb(253, 128, 3)",
   },
   errorText: {
     color: "red",

@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { StyleSheet, View, TouchableOpacity, Alert } from "react-native";
 import { saveComment } from "../services/commentService"; // Ajuste o caminho para o serviço
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { TextInput } from "react-native-paper";
+import AuthContext from "../context/authContext";
 
 const FormCommentIncident = ({ idIncident, onClose, onCommentAdded }) => {
   const [description, setDescription] = useState("");
-
+  const { userData } = useContext(AuthContext); 
+  const { id: idUser } = userData || {};
+  
   const handleSend = async () => {
     if (!description.trim()) {
       Alert.alert("Erro", "O comentário não pode estar vazio.");
@@ -15,12 +17,10 @@ const FormCommentIncident = ({ idIncident, onClose, onCommentAdded }) => {
     }
 
     try {
-      const idUser = await AsyncStorage.getItem("userId"); 
       const newComment = await saveComment(idIncident, description, idUser);
       Alert.alert("Sucesso", "Comentário enviado!");
       setDescription(""); // Limpa o campo de texto após o envio
 
-      // Notifica o componente pai
       if (onCommentAdded) {
         onCommentAdded(newComment);
       }
@@ -42,7 +42,7 @@ const FormCommentIncident = ({ idIncident, onClose, onCommentAdded }) => {
       </TouchableOpacity>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.inputDescription}
+          style={styles.input}
           placeholder="Escreva seu comentário"
           placeholderTextColor="#999"
           value={description}
@@ -71,23 +71,33 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: -65,
+    right: 20,
     zIndex: 1, // Garante que o botão fique acima dos outros elementos
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 15,
+    position: 'absolute',
+    backgroundColor: "#1E293B", // Fundo azul escuro
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingTop: 39,
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    elevation: 5,
   },
-  inputDescription: {
-    flex: 1,
-    fontSize: 16,
-    color: "#000",
+  input: {
+    backgroundColor: '#f6f6f6',
+    marginBottom: 12,
+    padding: 8,
+    borderRadius: 4,
     height: 50,
   },
   iconButton: {
-    marginLeft: 10,
+    position: "absolute",
+    right: 25,
+    top: 75,
   },
 });
 

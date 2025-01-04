@@ -7,7 +7,8 @@ import {
   where, 
   deleteDoc, 
   doc, 
-  updateDoc 
+  updateDoc,
+  onSnapshot
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // Certifique-se de ajustar o caminho
 
@@ -51,7 +52,7 @@ export const saveComment = async (idIncident, text, idUser) => {
  * @param {string} idIncident - ID do incidente relacionado.
  * @returns {Array} - Lista de comentários.
  */
-export const getComments = async (idIncident) => {
+export const getComments = (idIncident, callback) => {
   try {
     if (!idIncident) {
       throw new Error("O ID do incidente (idIncident) é obrigatório.");
@@ -62,19 +63,23 @@ export const getComments = async (idIncident) => {
       where("idIncident", "==", idIncident)
     );
 
-    const querySnapshot = await getDocs(commentsQuery);
-    const comments = [];
-
-    querySnapshot.forEach((doc) => {
-      comments.push({ 
-        id: doc.id, 
-        idIncident, 
-        ...doc.data() 
+    // Escuta mudanças em tempo real
+    const unsubscribe = onSnapshot(commentsQuery, (querySnapshot) => {
+      const comments = [];
+      querySnapshot.forEach((doc) => {
+        comments.push({
+          id: doc.id,
+          idIncident,
+          ...doc.data(),
+        });
       });
+
+      console.log("Comentários atualizados: ", comments);
+      callback(comments); // Chama o callback com os dados atualizados
     });
 
-    console.log("Comentários encontrados: ", comments);
-    return comments;
+    // Retorna a função de limpeza
+    return unsubscribe;
   } catch (error) {
     console.error(`Erro ao buscar comentários do incidente ${idIncident}: `, error);
     throw error;
@@ -113,7 +118,7 @@ export const updateComment = async (commentId, data) => {
     }
 
     const commentRef = doc(db, "comments", commentId);
-    await updateDoc(commentRef, data);
+    await updateDoc(commentRef, {...data, updatedAt: new Date().toISOString()});
 
     console.log(`Comentário com ID ${commentId} foi atualizado com sucesso.`);
   } catch (error) {

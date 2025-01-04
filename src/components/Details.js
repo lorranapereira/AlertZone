@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, TextInput } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Platform, TextInput } from "react-native";
 import { Button, Modal, Portal, Provider, Card, Avatar, Menu, IconButton } from "react-native-paper";
 import FormCommentIncident from "./FormCommentIncident";
 import { getIncident, updateIncident, deleteIncident } from "../services/incidentService"; // Ajuste os caminhos conforme necessário
 import { getComments, updateComment, deleteComment } from "../services/commentService"; // Ajuste os caminhos conforme necessário
+import AuthContext from "../context/authContext";
+import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 
 const Details = ({ marker, visibleValue, onClose }) => {
   const [visible, setVisible] = useState(visibleValue || false);
@@ -15,54 +17,57 @@ const Details = ({ marker, visibleValue, onClose }) => {
   const [editingDescription, setEditingDescription] = useState("");
   const [editingComment, setEditingComment] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState("");
-  const [userId, setUserId]= useState(null);
-  const [isAdmin, setIsAdmin]= useState(null);
   const [menuVisible, setMenuVisible] = useState({});
+  const { userData } = useContext(AuthContext);
+  const { id: userId, isAdmin } = userData || {};
+  const [showForm, setShowForm] = useState(false);
+
 
   useEffect(() => {
     const fetchData = async () => {
-
-      setUserId(await AsyncStorage.getItem("userId"));
-      setIsAdmin(await AsyncStorage.getItem("isAdmin"));
-
       if (marker) {
         const fetchedIncidents = [];
         const fetchedComments = {};
-
+        let unsubscribe = null;
+  
         try {
           // Verifica se o objeto `marker` possui a propriedade `incidentId`
           if (marker.incidentId) {
             console.log("Processando o marker:", marker);
-
+  
             // Busca os dados do incidente
             const incident = await getIncident(marker.incidentId);
-
-            // Busca os comentários associados ao incidente
-            const incidentComments = await getComments(marker.incidentId);
-
-            // Adiciona o incidente e os comentários às listas locais
             fetchedIncidents.push({ id: marker.incidentId, ...incident });
-            fetchedComments[marker.incidentId] = incidentComments || []; // Garante que seja um array vazio, se não houver comentários
+  
+            // Atualiza o estado dos incidentes
+            setIncidents([...fetchedIncidents]);
+
+            // Escuta mudanças em tempo real para os comentários
+            unsubscribe = getComments(marker.incidentId, (incidentComments) => {
+              fetchedComments[marker.incidentId] = incidentComments || []; // Garante que seja um array vazio
+              setComments({ ...fetchedComments });
+            });
           } else {
             console.warn("O objeto marker não contém um incidentId válido.");
           }
         } catch (error) {
           console.error(`Erro ao buscar dados para o incidente ${marker.incidentId}:`, error);
         }
+  
         console.log("celular!!!");
         console.log("Incidents carregados localmente:", fetchedIncidents);
-        console.log("Comments carregados localmente:", fetchedComments);
-
-        // Define os estados com os dados carregados
-        setIncidents([...fetchedIncidents]);
-        setComments({ ...fetchedComments });
-        console.log(incidents);
-        console.log(comments);
+  
+        // Retorna a função de limpeza ao desmontar o componente
+        return () => {
+          if (unsubscribe) unsubscribe();
+        };
       }
     };
-
+  
     fetchData();
   }, [marker]);
+  
+  
 
   // Adicione useEffect para depurar mudanças em incidents e comments
   useEffect(() => {
@@ -113,6 +118,12 @@ const Details = ({ marker, visibleValue, onClose }) => {
     } catch (error) {
       console.error("Erro ao editar o alerta:", error);
     }
+  };
+
+  const handleCloseForm = () => {
+    // Função para fechar o formulário
+    setEditingIncident(null);
+    setSelectedIncident(null);
   };
 
   const toggleMenu = (id) => {
@@ -178,7 +189,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
 
       setComments((prevComments) => {
         const updatedComments = { ...prevComments };
-        const incidentId = editingComment.incidentId;
+        const incidentId = editingComment.idIncident;
 
         updatedComments[incidentId] = updatedComments[incidentId].map((c) =>
           c.id === editingComment.id ? { ...c, text: editingCommentText } : c
@@ -215,15 +226,23 @@ const Details = ({ marker, visibleValue, onClose }) => {
               {incidents.map((incident) => (
                 <Card style={styles.postCard} key={incident.id}>
                   <Card.Content>
+                    
                     <View style={styles.postHeader}>
                       <Avatar.Icon size={40} icon="alert" style={styles.avatar} />
-                      <Text style={styles.postDate}>{formatDate(incident.createdAt)}</Text>
+                      <Text style={styles.postDate}>
+                          {incident.updatedAt
+                        ? `${formatDate(incident.updatedAt)} (editado)`
+                        : formatDate(incident.createdAt)}
+                      </Text>
                       {(isAdmin != "false" || incident.idUser == userId) && (
                       <Menu
                         visible={menuVisible[incident.id] || false}
                         onDismiss={() => toggleMenu(incident.id)}
+                        style= {styles.menuPost}
                         anchor={
-                          <TouchableOpacity onPress={() => toggleMenu(incident.id)}>
+                          <TouchableOpacity 
+                          style={styles.menuTriggerContainer}
+                          onPress={() => toggleMenu(incident.id)}>
                             <Text style={styles.menuTrigger}>...</Text>
                           </TouchableOpacity>
                         }
@@ -240,9 +259,11 @@ const Details = ({ marker, visibleValue, onClose }) => {
                     <Text style={styles.postTitle}>{incident.title}</Text>
                     <Text style={styles.postDescription}>{incident.description}</Text>
 
-                    <Text style={styles.commentsTitle}>Comentários:</Text>
+                    <Text style={styles.commentsTitle}>Comentários ({comments[incident.id]?.length || 0})</Text>
                     {comments[incident.id] && comments[incident.id].length > 0 ? (
-                      comments[incident.id].map((comment) => (
+                      Array.from(
+                        new Map(comments[incident.id].map((comment) => [comment.id, comment])).values()
+                      ).map((comment, index) => (
                         <View key={comment.id} style={styles.commentContainer}>
                           <Avatar.Icon size={40} icon="account" style={styles.commentAvatar} />
                           <View style={styles.commentContent}>
@@ -255,9 +276,10 @@ const Details = ({ marker, visibleValue, onClose }) => {
                           <Menu
                             visible={menuVisible[comment.id] || false}
                             onDismiss={() => toggleMenu(comment.id)}
+                            style={styles.menuComment}
                             anchor={
                               <TouchableOpacity onPress={() => toggleMenu(comment.id)}>
-                                <Text style={styles.menuTrigger}>...</Text>
+                                <Text style={styles.menuTouch} >...</Text>
                               </TouchableOpacity>
                             }
                           >
@@ -301,18 +323,28 @@ const Details = ({ marker, visibleValue, onClose }) => {
                   placeholder="Título"
                 />
                 <TextInput
-                  style={styles.input}
                   value={editingDescription}
                   onChangeText={setEditingDescription}
                   placeholder="Descrição"
+                  numberOfLines={20}
+                  maxLength={100}
+                  style={[styles.input, { height: 100 }]}
                   multiline
+                  contentStyle={{
+                    textAlignVertical: 'top', // Alinha o texto ao topo no Android
+                    paddingTop: Platform.OS === 'ios' ? 10 : 0, // Ajusta padding no topo para iOS
+                  }}
                 />
-                <Button mode="contained" onPress={saveEditedIncident}>
+                <Button mode="contained" style={styles.commentButtonOrange} onPress={saveEditedIncident}>
                   Salvar Alterações do alerta
                 </Button>
-                <Button mode="text" onPress={() => setEditingIncident(null)}>
-                  Cancelar
-                </Button>
+                <TouchableOpacity style={styles.closeButton} onPress={() => setEditingIncident(null)}>
+                  <Icon
+                    name="close"
+                    color="rgb(253, 128, 3)"
+                    size={24}
+                  />
+                </TouchableOpacity>
               </View>
             )}
             {
@@ -326,18 +358,24 @@ const Details = ({ marker, visibleValue, onClose }) => {
                     placeholder="Texto do comentário"
                     multiline
                   />
-                  <Button mode="contained" onPress={saveEditedComment}>
+                  <Button mode="contained" style={styles.commentButtonOrange} onPress={saveEditedComment}>
                     Salvar Alterações
                   </Button>
-                  <Button mode="text" onPress={() => setEditingComment(null)}>
-                    Cancelar
-                  </Button>
+                  <TouchableOpacity style={styles.closeButton} onPress={() => setEditingComment(null)}>
+                    <Icon
+                      name="close"
+                      color="rgb(253, 128, 3)"
+                      size={24}
+                    />
+                  </TouchableOpacity>
                 </View>
               )
             }
+            
             {selectedIncident && (
               <FormCommentIncident
                 idIncident={selectedIncident.id}
+                onClose={handleCloseForm}
                 onCommentAdded={(newComment) => {
                   setComments((prevComments) => {
                     const updatedComments = { ...prevComments };
@@ -362,6 +400,23 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
   },
+  commentButton: {
+    backgroundColor: "#1E293B",
+  },
+  commentButtonOrange: {
+    backgroundColor: "rgb(253, 128, 3)",
+  },
+  editFormTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#fff',
+  },
+  closeButton: {
+    position: "absolute",
+    right: -295,
+    top: 10,
+  },
   modalContainer: {
     flex: 1,
     backgroundColor: "white",
@@ -374,12 +429,17 @@ const styles = StyleSheet.create({
   },
   postHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
   },
   postDate: {
     fontSize: 12,
     color: "#888",
+    left: 20,
+  },
+  menuTriggerContainer: {
+    padding: 10,
+    alignItems: 'center', 
+    justifyContent: 'center',
   },
   postTitle: {
     fontSize: 18,
@@ -396,13 +456,66 @@ const styles = StyleSheet.create({
   commentContent: {
     flex: 1,
   },
+  commentText: {
+    fontSize: 14,
+    color: "#333",
+    marginTop: 5,
+  },
   commentDate: {
     fontSize: 12,
     color: "#888",
   },
-  commentText: {
-    fontSize: 14,
+  commentsTitle: {
+    marginTop: 10,
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "#888",
+  },
+  menuPost: {
+    position: "absolute",
+    margin: 4,
+    top: 95,
+    left: 225,
+  },
+  menuTrigger: {
+    fontSize: 20,
+    color: "#000",
+    marginLeft:125,
+    top: -15,
+    textAlign: "center",
+  },
+  menuTouch: {
+    fontSize: 20,
+    color: "#000",
+    top: -5,
+    textAlign: "center",
+    fontSize: 18,
+  },
+  menuComment: {
+    marginTop:-28,
+  },
+  editForm: {
+    backgroundColor: "#1E293B",
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+    elevation: 5,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+    marginTop:2,
+    borderRadius: 5,
+    marginBottom:15,
+    textAlignVertical: 'top',
+    backgroundColor: "#fff",
   },
 });
+
 
 export default Details;

@@ -8,7 +8,7 @@ const NameInput = ({value, setValue}) => {
     style={styles.textInput}
     label="Nome"
     mode="flat" 
-    left={
+    right={
       <TextInput.Icon
         icon="account"
         size={25}

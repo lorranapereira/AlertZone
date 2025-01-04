@@ -8,9 +8,9 @@ import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 const FormRegisterIncident = ({ region, onClose }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [locationDetails, setLocationDetails] = useState({ city: "", state: "" });
+  const [locationDetails, setLocationDetails] = useState({ city: "", state: "", road: "" });
   const { userData } = useContext(AuthContext); // Consumindo o AuthContext
-  const { id, notificationToken } = userData;
+  const { id, notificationToken, email } = userData;
 
 
   // Chama a função para buscar a cidade sempre que o `region` mudar
@@ -62,11 +62,11 @@ const FormRegisterIncident = ({ region, onClose }) => {
 
             const city = data.address.city || data.address.town || data.address.village || "Desconhecida";
             const stateFullName = data.address.state || "Estado desconhecido";
-
+            const road = data.address.road || "Rua desconhecida"; // Nome da rua
             // Busca a sigla do estado no mapeamento
             const state = stateToAbbreviation[stateFullName] || "UF desconhecida";
 
-            setLocationDetails({ city, state });
+            setLocationDetails({ city, state, road });
           } else {
             Alert.alert("Erro", "Não foi possível obter os detalhes da localização.");
           }
@@ -95,7 +95,7 @@ const FormRegisterIncident = ({ region, onClose }) => {
     }
 
     try {
-      await saveIncident(id, notificationToken, title, description, region.latitude, region.longitude, locationDetails.city, locationDetails.state); // Envia a cidade
+      await saveIncident(id, notificationToken, title, description, region.latitude, region.longitude, locationDetails.city, locationDetails.state, locationDetails.road); 
       Alert.alert("Sucesso", "Incidente salvo com sucesso!");
       setTitle("");
       setDescription("");
@@ -138,7 +138,7 @@ const FormRegisterIncident = ({ region, onClose }) => {
           multiline
           numberOfLines={20}
           maxLength={100}
-          style={[styles.input, { height: 100 }]}
+          style={[styles.inputDescription, { height: 100 }]}
           contentStyle={{
             textAlignVertical: 'top', // Alinha o texto ao topo no Android
             paddingTop: Platform.OS === 'ios' ? 10 : 0, // Ajusta padding no topo para iOS
@@ -167,7 +167,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E293B", // Fundo azul escuro
     paddingTop: 50,
     padding: 20,
-    borderRadius: 10,
   },
   errorText: {
     alignSelf: "flex-start",
@@ -195,12 +194,16 @@ const styles = StyleSheet.create({
     height: 50,
     fontSize: 16,
     color: "#000",
+    backgroundColor: "#fff",
+    borderRadius: 5,
   },
   inputDescription: {
-    flex: 1,
-    margin:0,
+    width: "100%",
     fontSize: 16,
+    backgroundColor: "#fff",
+    paddingTop:20,
     color: "#000",
+    borderRadius: 5,
     textAlignVertical: 'top',
   },
   cityText: {
@@ -211,8 +214,11 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     top: 30,
   },
-  button: {
-    alignSelf: "center",
+  button:  {
+    position: "absolute",
+    top: -10,
+    right: 20,
+    zIndex: 1, // Garante que o botão fique acima dos outros elementos
   },
 });
 

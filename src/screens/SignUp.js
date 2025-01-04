@@ -5,6 +5,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
   View,
+  Image,
 } from "react-native";
 import { Text, Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -39,8 +40,11 @@ const SignUp = ({ navigation }) => {
   return (
       <SafeAreaView style={styles.container}>
         <View style={styles.innerContainer}>
+          <Image
+            source={require("../../assets/logo.png")} // Substitua pelo caminho do seu logo
+            style={styles.headerLogo}
+          />
           <Text style={styles.createAccount}>Criar conta</Text>
-
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <NameInput value={name} setValue={setName} />
@@ -91,19 +95,23 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   createAccount: {
-    fontSize: 32,
-    fontWeight: "bold",
+    fontSize: 22,
     marginBottom: 20,
-    textAlign: "center",
   },
+  headerLogo: {
+    alignSelf: "center", // Centraliza a logo no contêiner pai
+    resizeMode: "contain",
+    marginBottom: 20, // Espaço abaixo da logo
+  },  
   createButton: {
-    marginTop: 20,
+    marginVertical: 10,
     paddingVertical: 10,
+    width:"100%",
     alignSelf: "center",
   },
   loginText: {
     fontWeight: "bold",
-    color: "#6200ee",
+    color: "rgb(253, 128, 3)",
   },
   errorText: {
     color: "red",

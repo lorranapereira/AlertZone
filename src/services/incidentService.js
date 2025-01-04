@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { collection, addDoc, getDocs, getDoc,query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, getDoc,query, where, deleteDoc, doc, updateDoc, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // Certifique-se de ajustar o caminho
 import * as geolib from "geolib"; // Biblioteca para cálculo de distâncias
 import { notification } from "../services/notificationService"; // Função para enviar notificações
 
-export const saveIncident = async (idUser, notificationToken, title, description, latitude, longitude, city, state) => {
+export const saveIncident = async (idUser, notificationToken, title, description, latitude, longitude, city, state, road) => {
   try {
     // Salva o incidente no Firestore
     const docRef = await addDoc(collection(db, "incidents"), {
@@ -15,6 +15,7 @@ export const saveIncident = async (idUser, notificationToken, title, description
       longitude,
       city,
       state,
+      road,
       createdAt: new Date().toISOString(),
     });
     console.log("Documento salvo com ID: ", docRef.id);
@@ -56,21 +57,29 @@ export const saveIncident = async (idUser, notificationToken, title, description
   }
 };
 
-  
-export const fetchIncidents = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "incidents"));
+export const fetchIncidents = (callback) => {
+  try {
+    const incidentsRef = collection(db, "incidents");
+
+    // Ordena pela string ISO 8601 de forma decrescente
+    const incidentsQuery = query(incidentsRef, orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(incidentsQuery, (querySnapshot) => {
       const incidents = [];
       querySnapshot.forEach((doc) => {
         incidents.push({ id: doc.id, ...doc.data() });
       });
-      console.log(incidents);
-      return incidents;
-    } catch (error) {
-      console.error("Erro ao buscar incidentes: ", error);
-      throw error;
-    }
+
+      callback(incidents);
+    });
+
+    return unsubscribe;
+  } catch (error) {
+    console.error("Erro ao buscar incidentes em tempo real: ", error);
+    throw error;
+  }
 };
+
 
 export const deleteIncident = async (incidentId) => {
   try {
@@ -85,8 +94,12 @@ export const deleteIncident = async (incidentId) => {
 
 export const updateIncident = async (incidentId, data) => {
   try {
+      console.log("entrou aqui");
       const incidentRef = doc(db, "incidents", incidentId); // Referência ao documento
-      await updateDoc(incidentRef, data); // Atualiza o documento no db
+      await updateDoc(incidentRef, {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      });      
       console.log(`Alerta com ID ${incidentId} foi atualizado.`);
   } catch (error) {
       console.error(`Erro ao atualizar o alerta com ID ${incidentId}: `, error);
@@ -111,31 +124,39 @@ export const getIncident = async (incidentId) => {
   }
 };
 
-
-export const fetchMarkers = async () => {
+export const fetchMarkers = (callback) => {
   try {
-    const querySnapshot = await getDocs(collection(db, "incidents"));
-    const markers = [];
-    const uniqueSet = new Set(); // Para rastrear coordenadas únicas
+    const incidentsRef = collection(db, "incidents");
 
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const coordKey = `${data.latitude}-${data.longitude}`; // Chave única para coordenadas
+    // Escuta as mudanças em tempo real na coleção
+    const unsubscribe = onSnapshot(incidentsRef, (querySnapshot) => {
+      const markers = [];
+      const uniqueSet = new Set(); // Para rastrear coordenadas únicas
 
-      if (!uniqueSet.has(coordKey)) {
-        uniqueSet.add(coordKey);
-        markers.push({
-          latitude: data.latitude,
-          longitude: data.longitude,
-          incidentId: doc.id,
-        });
-      } else {
-        console.warn(`Marcador duplicado ignorado: ${coordKey}`);
-      }
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const coordKey = `${data.latitude}-${data.longitude}`; // Chave única para coordenadas
+
+        if (!uniqueSet.has(coordKey)) {
+          uniqueSet.add(coordKey);
+          markers.push({
+            latitude: data.latitude,
+            longitude: data.longitude,
+            incidentId: doc.id,
+          });
+        } else {
+          console.warn(`Marcador duplicado ignorado: ${coordKey}`);
+        }
+      });
+
+      // Chama o callback com os marcadores atualizados
+      callback(markers);
     });
-    return markers;
+
+    // Retorna a função de limpeza para interromper a escuta
+    return unsubscribe;
   } catch (error) {
-    console.error("Erro ao buscar marcadores:", error);
+    console.error("Erro ao buscar marcadores em tempo real:", error);
     throw error;
   }
 };

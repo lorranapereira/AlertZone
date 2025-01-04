@@ -7,7 +7,6 @@ import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 const CustomDrawer = (props) => {
   return (
     <View style={{ flex: 1 }}>
-      {/* Cabeçalho do Drawer */}
       <View style={styles.header}>
         <Icon
           name="close"
@@ -58,13 +57,13 @@ const CustomDrawer = (props) => {
 const styles = StyleSheet.create({
   header: {
     backgroundColor: "#1E293B",
-    paddingVertical: 30,
-    paddingHorizontal: 20,
+    paddingTop: 90,
+    paddingHorizontal: 60,
     position: "relative",
   },
   closeIcon: {
     position: "absolute",
-    top: 15,
+    top: 40,
     right: 15,
   },
   profileContainer: {
