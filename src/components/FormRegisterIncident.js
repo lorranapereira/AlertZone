@@ -82,9 +82,6 @@ const FormRegisterIncident = ({ region, onClose }) => {
 
 
   const handleSend = async () => {
-    console.log(title);
-    console.log(description);
-    console.log(region);
 
     if (!title || !description || !region) {
       Alert.alert(

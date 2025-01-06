@@ -16,60 +16,63 @@ const Report = ({ navigation }) => {
     fetchIncidentData(selectedYear);
   }, [selectedYear]);
 
-  // Busca os anos distintos na coleção "incidents"
+
   const fetchAvailableYears = async () => {
     try {
       const distinctYears = await getDistinctYears();
       setYears(distinctYears);
-      console.log("monthlyData");
-
-      if (distinctYears.length > 0) {
-        setSelectedYear(distinctYears[0]); // Define o primeiro ano como selecionado por padrão
+  
+      // Só define o ano inicial se `selectedYear` ainda não estiver definido
+      if (distinctYears.length > 0 && !years.length) {
+        setSelectedYear(distinctYears[0]); // Define o primeiro ano como padrão apenas na inicialização
       }
     } catch (error) {
       console.error("Erro ao buscar anos disponíveis:", error.message);
     }
   };
+  
 
   // Busca os dados iniciais com base no ano selecionado
   const fetchIncidentData = async (year) => {
     try {
       // Busca incidentes por mês
       const monthlyData = await getMonthlyIncidents(year);
-      console.log(monthlyData);
-      // Busca incidentes por localização
-      const locationData = await getIncidentsByLocation();
-
+  
+      // Busca incidentes por localização, filtrados pelo ano
+      const locationData = await getIncidentsByLocation(year);
+  
       // Formata dados do gráfico
       const months = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez",
       ];
+  
       const formattedChartData = {
         labels: months,
         datasets: [
           { data: months.map((_, index) => monthlyData[index] || 0) },
         ],
       };
-
+  
       // Formata dados da tabela
       const formattedTableData = locationData.map((item) => ({
         estado: `${item.city}/${item.state}`,
         quantidade: item.totalIncidentes,
       }));
-
+  
       setChartData(formattedChartData);
       setTableData(formattedTableData);
     } catch (error) {
       console.error("Erro ao buscar os dados:", error.message);
     }
   };
-
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Relatório Geral Brasil</Text>
 
       {/* Seletor de Ano */}
       <View style={styles.filterContainer}>
+        <Text style={styles.textYear}>Selecione o ano</Text>
         <Menu
           visible={menuVisible}
           onDismiss={() => setMenuVisible(false)}
@@ -87,8 +90,8 @@ const Report = ({ navigation }) => {
             <Menu.Item
               key={year}
               onPress={() => {
-                setSelectedYear(year);
-                setMenuVisible(false);
+                setSelectedYear(year); // Atualiza o ano selecionado
+                setMenuVisible(false); // Fecha o menu
               }}
               title={year.toString()}
             />
@@ -96,11 +99,10 @@ const Report = ({ navigation }) => {
         </Menu>
       </View>
 
-      {/* Gráfico de Barras */}
       <BarChart
         data={chartData}
-        width={Dimensions.get("window").width - 20}
-        height={220}
+        width={369 } // Largura da tela com margem
+        height={250} // Altura ajustada
         yAxisLabel=""
         chartConfig={{
           backgroundGradientFrom: "#eff3ff",
@@ -109,8 +111,16 @@ const Report = ({ navigation }) => {
           color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           style: { borderRadius: 16 },
+          barPercentage: 0.5, // Largura das barras ajustada
+          propsForLabels: {
+            fontSize: 10, // Tamanho das etiquetas
+          },
         }}
-        style={{ marginVertical: 8, borderRadius: 16 }}
+        style={{
+          marginVertical: 8,
+          borderRadius: 16,
+          right:40,
+        }}
       />
 
       {/* Tabela */}
@@ -135,16 +145,17 @@ const Report = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  container: { flex: 1, backgroundColor: "#f5f5f5", paddingHorizontal: 10 },
   header: { flexDirection: "row", alignItems: "center", backgroundColor: "#001f4d", paddingTop: 35 },
   title: { fontSize: 20, fontWeight: "bold", textAlign: "center", marginTop: 25 },
-  filterContainer: { padding: 20, alignItems: "center" },
-  yearSelector: { width: 150, marginBottom: 15 },
+  filterContainer: { paddingTop:20, flexDirection: "row", verticalAlign: "center"},
+  yearSelector: { width: 100, height:40, marginBottom: 5 },
   tableCard: { marginTop: 20, padding: 10, borderRadius: 10, elevation: 2 },
   tableHeader: { flexDirection: "row", justifyContent: "space-between", backgroundColor: "#ddd", padding: 10, borderRadius: 5 },
   headerCell: { fontWeight: "bold", fontSize: 14 },
   tableRow: { flexDirection: "row", justifyContent: "space-between", padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
   rowCell: { fontSize: 14 },
+  textYear: {fontSize:18, top:10, marginEnd: 10,},
 });
 
 export default Report;

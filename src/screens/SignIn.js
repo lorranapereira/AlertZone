@@ -42,14 +42,10 @@ const SignIn = ({ navigation }) => {
       alert(message);
 
       // Solicita permissões de localização
-      console.log("Solicitando permissões...");
       const { status } = await Location.requestForegroundPermissionsAsync();
-      console.log("Permissões concedidas: ", status);
       
       if (status === "granted") {
-        console.log("Obtendo localização...");
         const location = await Location.getCurrentPositionAsync({});
-        console.log("Localização obtida: ", location);
         const { latitude, longitude } = location.coords;
 
         // Atualiza as coordenadas no Firestore usando o usuário retornado
@@ -58,10 +54,7 @@ const SignIn = ({ navigation }) => {
         } else {
           throw new Error("Usuário não autenticado.");
         }
-        console.log("Coordenadas atualizadas.");
-      } else {
-        console.log("Permissão de localização negada.");
-      }
+      } 
     } catch (err) {
       console.error(err);
       // Se o erro não tiver o campo 'code', forneça uma mensagem padrão

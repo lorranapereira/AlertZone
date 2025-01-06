@@ -57,8 +57,8 @@ const Account = ({ navigation }) => {
   // Função para desativar a conta
   const handleDeactivate = async () => {
     Alert.alert(
-      "Desativar Conta",
-      "Tem certeza que deseja desativar sua conta? Esta ação não pode ser desfeita.",
+      "Excluir Conta",
+      "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.",
       [
         { text: "Cancelar", style: "cancel" },
         {
@@ -67,7 +67,7 @@ const Account = ({ navigation }) => {
           onPress: async () => {
             try {
               await deactivateAccount();
-              Alert.alert("Sucesso", "Conta desativada com sucesso!");
+              Alert.alert("Sucesso", "Conta excluída com sucesso!");
               navigation.replace("Login"); // Redireciona para a tela de login
             } catch (error) {
               Alert.alert("Erro", error.message);
@@ -78,6 +78,16 @@ const Account = ({ navigation }) => {
     );
   };
 
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      Alert.alert("Sucesso", "Você foi deslogado!");
+      navigation.replace("SignIn"); // Redireciona para a tela de login
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível deslogar. Tente novamente.");
+    }
+  };
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Minha Conta</Text>
@@ -92,7 +102,7 @@ const Account = ({ navigation }) => {
           style={styles.input}
           mode="outlined"
         />
-
+  
         {/* Email (desabilitado) */}
         <TextInput
           label="E-mail"
@@ -101,7 +111,7 @@ const Account = ({ navigation }) => {
           mode="outlined"
           disabled
         />
-
+  
         {/* Senha Atual */}
         <TextInput
           label="Senha Atual"
@@ -111,7 +121,7 @@ const Account = ({ navigation }) => {
           mode="outlined"
           secureTextEntry
         />
-
+  
         {/* Nova Senha */}
         <TextInput
           label="Nova Senha"
@@ -121,7 +131,7 @@ const Account = ({ navigation }) => {
           mode="outlined"
           secureTextEntry
         />
-
+  
         {/* Botões */}
         <Button
           mode="contained"
@@ -135,11 +145,19 @@ const Account = ({ navigation }) => {
           style={styles.deactivateButton}
           onPress={handleDeactivate}
         >
-          Desativar Conta
+          Excluir Conta
+        </Button>
+        <Button
+          mode="outlined"
+          style={styles.logoutButton}
+          onPress={handleLogout}
+        >
+          Sair da Conta
         </Button>
       </View>
     </View>
   );
+  
 };
 
 const styles = StyleSheet.create({
@@ -174,6 +192,11 @@ const styles = StyleSheet.create({
   deactivateButton: {
     backgroundColor: "#f44336",
   },
+  logoutButton: {
+    borderColor: "#f44336", // Cor da borda
+    borderWidth: 1,
+    marginVertical: 10,
+  },  
 });
 
 export default Account;

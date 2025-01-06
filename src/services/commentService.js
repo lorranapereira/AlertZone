@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { 
   collection, 
   addDoc, 
@@ -31,8 +30,6 @@ export const saveComment = async (idIncident, text, idUser) => {
       idUser,
       createdAt: new Date().toISOString(), // Salva a data em formato ISO
     });
-
-    console.log("Comentário salvo com sucesso: ", docRef.id);
 
     return {
       id: docRef.id,
@@ -74,7 +71,6 @@ export const getComments = (idIncident, callback) => {
         });
       });
 
-      console.log("Comentários atualizados: ", comments);
       callback(comments); // Chama o callback com os dados atualizados
     });
 
@@ -99,7 +95,6 @@ export const deleteComment = async (commentId) => {
     const commentRef = doc(db, "comments", commentId);
     await deleteDoc(commentRef);
 
-    console.log(`Comentário com ID ${commentId} foi deletado com sucesso.`);
   } catch (error) {
     console.error(`Erro ao deletar o comentário com ID ${commentId}: `, error);
     throw error;
@@ -120,7 +115,6 @@ export const updateComment = async (commentId, data) => {
     const commentRef = doc(db, "comments", commentId);
     await updateDoc(commentRef, {...data, updatedAt: new Date().toISOString()});
 
-    console.log(`Comentário com ID ${commentId} foi atualizado com sucesso.`);
   } catch (error) {
     console.error(`Erro ao atualizar o comentário com ID ${commentId}: `, error);
     throw error;

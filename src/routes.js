@@ -34,9 +34,9 @@ const DrawerRoutes = () => {
         
         >
             <Drawer.Screen name="Home" component={Home} />
-            <Drawer.Screen name="Timeline" component={Timeline} />
-            <Drawer.Screen name="Account" component={Account} />
-            <Drawer.Screen name="Report" component={Report} />
+            <Drawer.Screen name="Timeline" component={Timeline} options={{ title: "Alertas" }} />
+            <Drawer.Screen name="Account" component={Account} options={{ title: "Conta" }} />
+            <Drawer.Screen name="Report" component={Report} options={{ title: "Relatório" }} />
         </Drawer.Navigator>
     );
 };
@@ -54,7 +54,7 @@ const Routes = () => {
             <Stack.Screen
                 name="SignUp"
                 component={SignUp}
-                options={{ headerShown: true, title: "Criar Account" }}
+                options={{ headerShown: true, title: "Criar Conta" }}
             />
             {/* Telas principais após autenticação */}
             <Stack.Screen

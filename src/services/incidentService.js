@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { collection, addDoc, getDocs, getDoc,query, where, deleteDoc, doc, updateDoc, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // Certifique-se de ajustar o caminho
 import * as geolib from "geolib"; // Biblioteca para cálculo de distâncias
@@ -18,7 +17,6 @@ export const saveIncident = async (idUser, notificationToken, title, description
       road,
       createdAt: new Date().toISOString(),
     });
-    console.log("Documento salvo com ID: ", docRef.id);
 
     // Busca usuários no Firestore para enviar notificações
     const usersSnapshot = await getDocs(collection(db, "users"));
@@ -26,7 +24,6 @@ export const saveIncident = async (idUser, notificationToken, title, description
 
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
-      console.log(userData);
       if (
         userData.latitude &&
         userData.longitude &&
@@ -43,12 +40,13 @@ export const saveIncident = async (idUser, notificationToken, title, description
     });
 
     // Envia notificações para os usuários próximos
+    console.log("notificação");
+    console.log(nearbyUsers);
+    console.log(latitude, longitude);
+
     if (nearbyUsers.length > 0) {
       await notification(nearbyUsers, "Alguém registrou um alerta na sua região", notificationToken);
-      console.log("Notificações enviadas com sucesso!");
-    } else {
-      console.log("Nenhum usuário encontrado no raio de 1km.");
-    }
+    } 
 
     return docRef.id;
   } catch (e) {
@@ -85,7 +83,6 @@ export const deleteIncident = async (incidentId) => {
   try {
     const incidentRef = doc(db, "incidents", incidentId);
     await deleteDoc(incidentRef);
-    console.log(`Comentário com ID ${incidentId} foi deletado.`);
   } catch (error) {
     console.error(`Erro ao deletar o comentário com ID ${incidentId}: `, error);
     throw error;
@@ -94,13 +91,11 @@ export const deleteIncident = async (incidentId) => {
 
 export const updateIncident = async (incidentId, data) => {
   try {
-      console.log("entrou aqui");
       const incidentRef = doc(db, "incidents", incidentId); // Referência ao documento
       await updateDoc(incidentRef, {
         ...data,
         updatedAt: new Date().toISOString(),
       });      
-      console.log(`Alerta com ID ${incidentId} foi atualizado.`);
   } catch (error) {
       console.error(`Erro ao atualizar o alerta com ID ${incidentId}: `, error);
       throw error;
@@ -208,7 +203,7 @@ export const getMonthlyIncidents = async (year) => {
  * Retorna os incidentes agrupados por localização (city/state).
  * @returns {Promise<{ city: string, state: string, totalIncidentes: number }[]>}
  */
-export const getIncidentsByLocation = async () => {
+export const getIncidentsByLocation = async (year) => {
   try {
     const incidentsRef = collection(db, "incidents");
     const querySnapshot = await getDocs(incidentsRef);
@@ -217,12 +212,17 @@ export const getIncidentsByLocation = async () => {
 
     querySnapshot.forEach((doc) => {
       const incident = doc.data();
-      const key = `${incident.city}/${incident.state}`;
+      const incidentYear = new Date(incident.createdAt).getFullYear(); // Extrai o ano do incidente
 
-      if (!locationMap[key]) {
-        locationMap[key] = { city: incident.city, state: incident.state, totalIncidentes: 0 };
+      // Filtra apenas os incidentes do ano selecionado
+      if (incidentYear === year) {
+        const key = `${incident.city}/${incident.state}`;
+
+        if (!locationMap[key]) {
+          locationMap[key] = { city: incident.city, state: incident.state, totalIncidentes: 0 };
+        }
+        locationMap[key].totalIncidentes += 1;
       }
-      locationMap[key].totalIncidentes += 1;
     });
 
     return Object.values(locationMap); // Retorna o array formatado

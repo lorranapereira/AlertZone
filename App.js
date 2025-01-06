@@ -12,8 +12,9 @@ const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#1E293B', // Altere para a cor desejada
-    text: "#1E293B", // Cor do texto
+    primary: '#1E293B',
+    text: "#1E293B", 
+    outline: "#1E293B", 
   },
 };
 

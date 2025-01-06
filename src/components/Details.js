@@ -33,7 +33,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
         try {
           // Verifica se o objeto `marker` possui a propriedade `incidentId`
           if (marker.incidentId) {
-            console.log("Processando o marker:", marker);
   
             // Busca os dados do incidente
             const incident = await getIncident(marker.incidentId);
@@ -54,8 +53,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
           console.error(`Erro ao buscar dados para o incidente ${marker.incidentId}:`, error);
         }
   
-        console.log("celular!!!");
-        console.log("Incidents carregados localmente:", fetchedIncidents);
   
         // Retorna a função de limpeza ao desmontar o componente
         return () => {
@@ -71,11 +68,9 @@ const Details = ({ marker, visibleValue, onClose }) => {
 
   // Adicione useEffect para depurar mudanças em incidents e comments
   useEffect(() => {
-    console.log("Incidents atualizados:", incidents);
   }, [incidents]);
 
   useEffect(() => {
-    console.log("Comments atualizados:", comments);
   }, [comments]);
 
 
@@ -114,7 +109,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
       setEditingIncident(null);
       setEditingTitle("");
       setEditingDescription("");
-      console.log("Alerta editado com sucesso!");
     } catch (error) {
       console.error("Erro ao editar o alerta:", error);
     }
@@ -148,7 +142,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
     try {
       await deleteIncident(incidentId);
       setIncidents((prev) => prev.filter((incident) => incident.id !== incidentId));
-      console.log("Alerta excluído com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir o alerta:", error);
     }
@@ -167,7 +160,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
         return updatedComments;
       });
 
-      console.log("Comentário excluído com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir o comentário:", error);
     }
@@ -200,7 +192,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
 
       setEditingComment(null);
       setEditingCommentText("");
-      console.log("Comentário editado com sucesso!");
     } catch (error) {
       console.error("Erro ao editar o comentário:", error);
     }

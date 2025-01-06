@@ -13,6 +13,7 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
         "EXPO_USE_LEGACY_DEPENDENCY_RESOLUTION": "1"
       }

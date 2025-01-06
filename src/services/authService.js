@@ -9,7 +9,6 @@ import {
 	EmailAuthProvider 
   } from "firebase/auth";
   import { auth, db } from "../../firebaseConfig"; // Importe o Firebase configurado
-  import AsyncStorage from "@react-native-async-storage/async-storage";
   import * as Notifications from "expo-notifications";
   import {
 	collection,
@@ -82,7 +81,6 @@ import {
 		{ merge: true } // Garante que o documento seja mesclado e não sobrescrito
 	  );
   
-	  console.log("Token de notificação salvo com sucesso!");
 	} catch (error) {
 	  console.error("Erro ao salvar o token de notificação:", error.message);
 	}
@@ -111,7 +109,6 @@ import {
 		{ merge: true } // Garante que não sobrescreva outros campos
 	  );
   
-	  console.log("Coordenadas do usuário atualizadas com sucesso!");
 	} catch (error) {
 	  console.error("Erro ao atualizar as coordenadas:", error.message);
 	  throw new Error("Não foi possível atualizar as coordenadas.");
@@ -126,20 +123,15 @@ import {
    */
 // src/services/authService.js
 
-export const loginWithEmailAndPassword = async (email, password) => {
-	console.log("Iniciando login...");
-  
+export const loginWithEmailAndPassword = async (email, password) => {  
 	try {
 	  const userCredential = await signInWithEmailAndPassword(auth, email, password);
 	  const user = userCredential.user; // Obtenha o usuário a partir de userCredential
   
 	  const userId = user.uid; // Obtém o ID do usuário
-	  await AsyncStorage.setItem("userId", userId); // Salva no AsyncStorage
   
 	  const adminStatus = await isAdmin(userId);
-	  await AsyncStorage.setItem("isAdmin", JSON.stringify(adminStatus)); // Salva como string
   
-	  console.log("Login realizado com sucesso!");
 	  return { message: "Login realizado com sucesso!", user };
 	} catch (error) {
 	  console.log(error);
@@ -200,9 +192,9 @@ export const loginWithEmailAndPassword = async (email, password) => {
 	  }
   
 	  await deleteUser(user);
-	  return "Conta desativada com sucesso!";
+	  return "Conta excluída!";
 	} catch (error) {
-	  console.error("Erro ao desativar a conta:", error.message);
+	  console.error("Erro ao excluir a conta:", error.message);
 	  throw new Error(error.message);
 	}
   };

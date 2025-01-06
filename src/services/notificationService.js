@@ -33,7 +33,6 @@ export const saveUserNotificationToken = async () => {
       notificationToken: token,
     });
 
-    console.log("Token de notificação salvo no Firestore!");
   } catch (error) {
     console.error("Erro ao salvar token de notificação:", error.message);
   }
@@ -46,12 +45,14 @@ export const notification = async (tokens, message, currentUserToken) => {
       console.warn("Nenhum token de notificação fornecido.");
       return;
     }
+    console.log("emitir alerta 1000");
 
     // Filtra o token do usuário atual para não enviar notificações a ele
-    const filteredTokens = tokens.filter((token) => token !== currentUserToken);
+
+    const filteredTokens = tokens;
+    console.log(filteredTokens);
 
     if (filteredTokens.length === 0) {
-      console.log("Nenhum destinatário válido para notificações.");
       return;
     }
 
@@ -76,7 +77,6 @@ export const notification = async (tokens, message, currentUserToken) => {
       throw new Error(`Erro na API Expo Push Notification: ${response.statusText}`);
     }
 
-    console.log("Notificações enviadas com sucesso!");
   } catch (error) {
     console.error("Erro ao enviar notificações:", error.message);
     throw error;
@@ -104,7 +104,6 @@ export const emitAlert = async (alertDetails) => {
       createdAt: new Date().toISOString(),
     });
 
-    console.log("Alerta salvo com sucesso!");
 
     // Obtem tokens de notificação de outros usuários
     const usersSnapshot = await getDocs(collection(db, "users"));

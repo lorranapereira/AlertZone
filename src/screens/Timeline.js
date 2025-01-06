@@ -95,7 +95,6 @@ const Timeline = () => {
       setEditingIncident(null);
       setEditingTitle("");
       setEditingDescription("");
-      console.log("Alerta editado com sucesso!");
     } catch (error) {
       console.error("Erro ao editar o alerta:", error);
     }
@@ -117,7 +116,6 @@ const Timeline = () => {
     try {
       await deleteIncident(incidentId);
       setIncidents((prev) => prev.filter((incident) => incident.id !== incidentId));
-      console.log("Alerta excluído com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir o alerta:", error);
     }
@@ -150,7 +148,6 @@ const Timeline = () => {
 
       setEditingComment(null);
       setEditingCommentText("");
-      console.log("Comentário editado com sucesso!");
     } catch (error) {
       console.error("Erro ao editar o comentário:", error);
     }
@@ -170,7 +167,6 @@ const Timeline = () => {
         return updatedComments;
       });
 
-      console.log("Comentário excluído com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir o comentário:", error);
     }
@@ -200,8 +196,6 @@ const Timeline = () => {
                   </TouchableOpacity>
                 }
               >
-                {console.log("id incidente", incident.idUser)}
-                {console.log("userId", userId)}
                 <Menu.Item onPress={() => onDeleteIncident(incident.id)} title="Excluir" />
 
                 {incident.idUser == userId && (
