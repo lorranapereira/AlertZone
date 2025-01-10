@@ -5,10 +5,10 @@ import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { TextInput } from "react-native-paper";
 import AuthContext from "../context/authContext";
 
-const FormCommentIncident = ({ idIncident, onClose, onCommentAdded }) => {
+const FormCommentIncident = ({ idIncident, onClose }) => {
   const [description, setDescription] = useState("");
   const { userData } = useContext(AuthContext); 
-  const { id: idUser } = userData || {};
+  const { id: idUser } = userData;
   
   const handleSend = async () => {
     if (!description.trim()) {
@@ -21,9 +21,6 @@ const FormCommentIncident = ({ idIncident, onClose, onCommentAdded }) => {
       Alert.alert("Sucesso", "Comentário enviado!");
       setDescription(""); // Limpa o campo de texto após o envio
 
-      if (onCommentAdded) {
-        onCommentAdded(newComment);
-      }
       onClose();
     } catch (error) {
       console.error("Erro ao salvar comentário: ", error);

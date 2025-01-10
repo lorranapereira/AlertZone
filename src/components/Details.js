@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Platform, TextInput } from "react-native";
-import { Button, Modal, Portal, Provider, Card, Avatar, Menu, IconButton } from "react-native-paper";
+import { Button, Modal, Portal, PaperProvider, Card, Avatar, Menu, IconButton } from "react-native-paper";
 import FormCommentIncident from "./FormCommentIncident";
 import { getIncident, updateIncident, deleteIncident } from "../services/incidentService"; // Ajuste os caminhos conforme necessário
 import { getComments, updateComment, deleteComment } from "../services/commentService"; // Ajuste os caminhos conforme necessário
@@ -198,7 +198,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
   };
 
   return (
-    <Provider>
       <Portal>
         <Modal
           visible={visible}
@@ -206,8 +205,8 @@ const Details = ({ marker, visibleValue, onClose }) => {
           contentContainerStyle={styles.modalContainer}
         >
           <View style={styles.container}>
-            <IconButton
-              icon="close"
+            <Icon
+              name="close"
               size={24}
               onPress={hideModal}
               style={styles.closeButton}
@@ -232,7 +231,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
                         style= {styles.menuPost}
                         anchor={
                           <TouchableOpacity 
-                          style={styles.menuTriggerContainer}
                           onPress={() => toggleMenu(incident.id)}>
                             <Text style={styles.menuTrigger}>...</Text>
                           </TouchableOpacity>
@@ -249,8 +247,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
                     </View>
                     <Text style={styles.postTitle}>{incident.title}</Text>
                     <Text style={styles.postDescription}>{incident.description}</Text>
-                     {console.log("aquiii")}
-                     {console.log(comments[incident.id])}
                     <Text style={styles.commentsTitle}>Comentários ({comments[incident.id]?.length  || 0})</Text>
                     {comments[incident.id] && comments[incident.id].length > 0 ? (
                       Array.from(
@@ -259,9 +255,11 @@ const Details = ({ marker, visibleValue, onClose }) => {
                         <View key={comment.id} style={styles.commentContainer}>
                           <Avatar.Icon size={40} icon="account" style={styles.commentAvatar} />
                           <View style={styles.commentContent}>
-                            <Text style={styles.commentDate}>
-                              {formatDate(comment.createdAt)}
-                            </Text>
+                          <Text style={styles.postDateComment}>
+                              {comment.updatedAt
+                            ? `${formatDate(comment.updatedAt)} (editado)`
+                            : formatDate(comment.createdAt)}
+                          </Text>
                             <Text style={styles.commentText}>{comment.text}</Text>
                           </View>
                           {(isAdmin != "false" || comment.idUser == userId) && (
@@ -330,7 +328,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
                 <Button mode="contained" style={styles.commentButtonOrange} onPress={saveEditedIncident}>
                   Salvar Alterações do alerta
                 </Button>
-                <TouchableOpacity style={styles.closeButton} onPress={() => setEditingIncident(null)}>
+                <TouchableOpacity style={styles.closeButtonForm} onPress={() => setEditingIncident(null)}>
                   <Icon
                     name="close"
                     color="rgb(253, 128, 3)"
@@ -353,7 +351,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
                   <Button mode="contained" style={styles.commentButtonOrange} onPress={saveEditedComment}>
                     Salvar Alterações
                   </Button>
-                  <TouchableOpacity style={styles.closeButton} onPress={() => setEditingComment(null)}>
+                  <TouchableOpacity style={styles.closeButtonForm} onPress={() => setEditingComment(null)}>
                     <Icon
                       name="close"
                       color="rgb(253, 128, 3)"
@@ -373,7 +371,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
           </View>
         </Modal>
       </Portal>
-    </Provider>
   );
 };
 
@@ -395,16 +392,16 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   closeButton: {
-    position: "absolute",
-    right: -295,
-    top: 10,
+    marginLeft: 'auto', // Empurra o ícone para a direita
+    left: 290,
+    top:5
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: "white",
     padding: 0,
     marginBottom: 10,
     position: "relative",
+    backgroundColor: 'white',
   },
   postCard: {
     marginBottom: 10,
@@ -416,7 +413,11 @@ const styles = StyleSheet.create({
   postDate: {
     fontSize: 12,
     color: "#888",
-    left: 20,
+    left: 10,
+  },
+  postDateComment: {
+    fontSize: 12,
+    color: "#888",
   },
   menuTriggerContainer: {
     padding: 10,
@@ -456,15 +457,16 @@ const styles = StyleSheet.create({
   menuPost: {
     position: "absolute",
     margin: 4,
-    top: 95,
+    top: 115,
     left: 225,
   },
   menuTrigger: {
     fontSize: 20,
     color: "#000",
-    marginLeft:125,
-    top: -15,
+    top: -5,
+    left: 95,
     textAlign: "center",
+    fontSize: 18,
   },
   menuTouch: {
     fontSize: 20,

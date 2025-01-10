@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider as PaperProvider, DefaultTheme } from 'react-native-paper';
+import { Provider, DefaultTheme } from 'react-native-paper';
 import Routes from "./src/routes";
 import { AuthProvider } from "./src/context/authContext"; // Autenticação
 import { MapProvider } from "./src/context/mapContext"; // Autocomplete Map
@@ -13,8 +13,8 @@ const theme = {
   colors: {
     ...DefaultTheme.colors,
     primary: '#1E293B',
-    text: "#1E293B", 
-    outline: "#1E293B", 
+    text: "#1E293B",
+    outline: "#1E293B",
   },
 };
 
@@ -28,8 +28,8 @@ const App = () => {
   }, []);
 
   return (
-    <PaperProvider  theme={theme}>
-      <AuthProvider>
+    <AuthProvider>
+      <Provider theme={theme}>
         <MapProvider>
           <MarkerProvider>
             <SafeAreaProvider>
@@ -39,8 +39,8 @@ const App = () => {
             </SafeAreaProvider>
           </MarkerProvider>
         </MapProvider>
-      </AuthProvider>
-    </PaperProvider>
+      </Provider>
+    </AuthProvider>
   );
 };
 

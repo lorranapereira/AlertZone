@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
-import Details from "./Details";
 
 const Map = ({ onMapPress, markers, onMarkerPress }) => {
   const [region, setRegion] = useState(null);
