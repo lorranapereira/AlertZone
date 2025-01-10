@@ -249,8 +249,9 @@ const Details = ({ marker, visibleValue, onClose }) => {
                     </View>
                     <Text style={styles.postTitle}>{incident.title}</Text>
                     <Text style={styles.postDescription}>{incident.description}</Text>
-
-                    <Text style={styles.commentsTitle}>Comentários ({comments[incident.id]?.length || 0})</Text>
+                     {console.log("aquiii")}
+                     {console.log(comments[incident.id])}
+                    <Text style={styles.commentsTitle}>Comentários ({comments[incident.id]?.length  || 0})</Text>
                     {comments[incident.id] && comments[incident.id].length > 0 ? (
                       Array.from(
                         new Map(comments[incident.id].map((comment) => [comment.id, comment])).values()
@@ -367,16 +368,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
               <FormCommentIncident
                 idIncident={selectedIncident.id}
                 onClose={handleCloseForm}
-                onCommentAdded={(newComment) => {
-                  setComments((prevComments) => {
-                    const updatedComments = { ...prevComments };
-                    updatedComments[selectedIncident.id] = [
-                      ...(updatedComments[selectedIncident.id] || []),
-                      newComment,
-                    ];
-                    return updatedComments;
-                  });
-                }}
               />
             )}
           </View>
@@ -412,7 +403,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     padding: 0,
-    marginBottom: 100,
+    marginBottom: 10,
     position: "relative",
   },
   postCard: {

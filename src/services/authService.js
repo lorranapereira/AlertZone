@@ -134,8 +134,8 @@ export const loginWithEmailAndPassword = async (email, password) => {
   
 	  return { message: "Login realizado com sucesso!", user };
 	} catch (error) {
-	  console.log(error);
-	  throw new Error(error.message);
+	  const friendlyMessage = translateFirebaseError(error.code);
+	  return { message: friendlyMessage, success: false };
 	}
   };
   
@@ -186,7 +186,8 @@ export const loginWithEmailAndPassword = async (email, password) => {
   export const deactivateAccount = async () => {
 	try {
 	  const user = auth.currentUser;
-  
+	  console.log("ioioii");
+
 	  if (!user) {
 		throw new Error("Usuário não autenticado.");
 	  }
@@ -221,7 +222,8 @@ export const loginWithEmailAndPassword = async (email, password) => {
   export const getUserName = async () => {
 	try {
 	  const user = auth.currentUser;
-  
+	  console.log("ioioii");
+
 	  if (!user) {
 		throw new Error("Usuário não autenticado.");
 	  }

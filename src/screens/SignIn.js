@@ -37,9 +37,7 @@ const SignIn = ({ navigation }) => {
     setIsLoading(true);
 
     try {
-      // Realiza o login
       const { message, user } = await loginWithEmailAndPassword(email, password);
-      alert(message);
 
       // Solicita permissões de localização
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -48,15 +46,14 @@ const SignIn = ({ navigation }) => {
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
 
-        // Atualiza as coordenadas no Firestore usando o usuário retornado
+        // Atualiza as coordenadas no Firestore 
         if (user && user.uid) {
           await updateCoord(user.uid, { latitude, longitude });
         } else {
-          throw new Error("Usuário não autenticado.");
+          throw new Error(message);
         }
       } 
     } catch (err) {
-      console.error(err);
       // Se o erro não tiver o campo 'code', forneça uma mensagem padrão
       const friendlyMessage = err.code ? translateFirebaseError(err.code) : err.message;
       setError(friendlyMessage);

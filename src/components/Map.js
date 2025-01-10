@@ -4,7 +4,7 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import Details from "./Details";
 
-const Map = ({ onMapPress, markers, onMarkerPress, onModalClose }) => {
+const Map = ({ onMapPress, markers, onMarkerPress }) => {
   const [region, setRegion] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedMarker, setSelectedMarker] = useState(null); // Armazena o marcador clicado
@@ -27,32 +27,16 @@ const Map = ({ onMapPress, markers, onMarkerPress, onModalClose }) => {
     })();
   }, []);
 
-  const handleMarkerPress = (marker) => {
-    setSelectedMarker(marker); // Define o marcador selecionado
-    setModalVisible(true); // Exibe a modal
+  const handleMarkerPressInternal = (marker) => {
     if (onMarkerPress) {
-      onMarkerPress();
+      onMarkerPress(marker); // Passa o marcador para o Home.js
     }
   };
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-    if (onModalClose) {
-      onModalClose(); // Chama o callback para restaurar o conteúdo principal
-    }
-  };
 
   return (
     <View style={styles.mapContainer}>
-      {isModalVisible && selectedMarker ? (
-        <Details
-          visibleValue={isModalVisible}
-          onClose={handleCloseModal}
-          marker={selectedMarker}
-          style={styles.map} 
-        />
-      ) : (
-        region && (
+      {region && (
           <MapView
             style={styles.map}
             initialRegion={region}
@@ -62,11 +46,10 @@ const Map = ({ onMapPress, markers, onMarkerPress, onModalClose }) => {
               <Marker
                 key={index}
                 coordinate={marker}
-                onPress={() => handleMarkerPress(marker)} // Passa o marcador clicado
+                onPress={() => handleMarkerPressInternal(marker)} // Passa o marcador clicado
               />
             ))}
           </MapView>
-        )
       )}
     </View>
   );  

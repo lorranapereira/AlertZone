@@ -3,6 +3,16 @@ import { StyleSheet } from "react-native";
 import { TextInput } from "react-native-paper";
 
 const PasswordInput = ({ value, setValue, showPassword, setShowPassword }) => {
+
+  const handleSubmit = () => {
+    if (!password) {
+      setError(true); // Marca erro se o campo estiver vazio
+    } else {
+      setError(false); // Limpa o erro
+      console.log("Senha enviada:", password);
+      // Continue com a lógica de login
+    }
+  };
   return (
     <TextInput
       style={styles.textInput}

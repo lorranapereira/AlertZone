@@ -7,7 +7,8 @@ import {
   deleteDoc, 
   doc, 
   updateDoc,
-  onSnapshot
+  onSnapshot,
+  orderBy
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig"; // Certifique-se de ajustar o caminho
 
@@ -57,10 +58,10 @@ export const getComments = (idIncident, callback) => {
 
     const commentsQuery = query(
       collection(db, "comments"),
-      where("idIncident", "==", idIncident)
+      where("idIncident", "==", idIncident),
+      orderBy("createdAt", "asc") 
     );
 
-    // Escuta mudanças em tempo real
     const unsubscribe = onSnapshot(commentsQuery, (querySnapshot) => {
       const comments = [];
       querySnapshot.forEach((doc) => {

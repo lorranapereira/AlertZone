@@ -23,6 +23,11 @@
       "env": {
         "EXPO_USE_LEGACY_DEPENDENCY_RESOLUTION": "1"
       }
+    },
+    "apk": {
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {

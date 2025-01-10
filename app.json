@@ -21,7 +21,16 @@
         "backgroundColor": "#ffffff",
         "googleServicesFile": "./google-services.json"
       },
-      "package": "com.lorrana.alertzone"
+      "package": "com.lorrana.alertzone",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAQ07aDIj4NslRtMQh0lInSVSeLJEUca1s"
+        }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     "extra": {
       "eas": {

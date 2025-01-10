@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, TouchableOpacity, Text, Alert } from "react-native";
 import Map from "../components/Map";
+import Details from "../components/Details";
 import FormRegisterIncident from "../components/FormRegisterIncident";
 import { fetchMarkers, saveIncidentToFirestore } from "../services/incidentService"; // Assegure-se de implementar saveIncidentToFirestore
 
@@ -10,6 +11,8 @@ const Home = () => {
   const [newMarker, setNewMarker] = useState(null); // Novo marcador do usuário
   const [permissionMarker, setPermissionMarker] = useState(false); // Permissão para adicionar marcador
   const [showContent, setShowContent] = useState(true); // Estado para controlar a visibilidade
+  const [selectedMarker, setSelectedMarker] = useState(null); // Marcador selecionado para detalhes
+
   useEffect(() => {
     // Escutar marcadores salvos no Firestore em tempo real
     const loadMarkers = () => {
@@ -34,6 +37,17 @@ const Home = () => {
     };
   }, []);
   
+  const handleMarkerPress = (marker) => {
+    console.log("Marcador pressionado:", marker);
+    setSelectedMarker(marker); // Define o marcador selecionado para detalhes
+    setShowContent(false); // Esconde o conteúdo principal se necessário
+  };
+
+  const handleCloseDetails = () => {
+    console.log("Fechando detalhes do marcador");
+    setSelectedMarker(null);
+    setShowContent(true);
+  };
 
   const handleMapPress = (event) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -83,9 +97,19 @@ const Home = () => {
       <Map
         onMapPress={handleMapPress}
         markers={[...existingMarkers, ...(newMarker ? [newMarker] : [])]} // Combina marcadores existentes com o novo
-        onMarkerPress={() => setShowContent(false)}
-        onModalClose={() => setShowContent(true)} // Restaura o conteúdo principal
+        onMarkerPress={handleMarkerPress} // Passa a função de handler
+
       />
+
+      {selectedMarker && (
+        <Details
+          visibleValue={true}
+          onClose={handleCloseDetails}
+          marker={selectedMarker}
+          style={styles.details}
+        />
+      )}
+
       {showContent && (permissionMarker && newMarker ? (
         <FormRegisterIncident
           region={newMarker}
@@ -143,6 +167,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  details: {
+    position: "relative",
+    margintop:50,
+    flex: 1,
+  }
 });
 
 export default Home;
