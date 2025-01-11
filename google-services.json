@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "153202671557",
-    "project_id": "alertzone-6e6d2",
-    "storage_bucket": "alertzone-6e6d2.firebasestorage.app"
+    "project_number": "",
+    "project_id": "",
+    "storage_bucket": ""
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:153202671557:android:c5e4f04ec6f126a17c95ac",
+        "mobilesdk_app_id": "",
         "android_client_info": {
-          "package_name": "company.alertzone"
+          "package_name": ""
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAQ07aDIj4NslRtMQh0lInSVSeLJEUca1s"
+          "current_key": ""
         }
       ],
       "services": {
