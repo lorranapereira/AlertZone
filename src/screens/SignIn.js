@@ -26,11 +26,7 @@ const SignIn = ({ navigation }) => {
 
   const { userData } = useContext(AuthContext);
 
-  useEffect(() => {
-    if (userData) {
-      navigation.navigate("Main");
-    }
-  }, [userData]);
+
 
   const handleSignIn = async () => {
     setError("");
@@ -49,6 +45,7 @@ const SignIn = ({ navigation }) => {
         // Atualiza as coordenadas no Firestore 
         if (user && user.uid) {
           await updateCoord(user.uid, { latitude, longitude });
+          navigation.navigate("Main");
         } else {
           throw new Error(message);
         }

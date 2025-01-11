@@ -68,7 +68,7 @@ const Account = ({ navigation }) => {
             try {
               await deactivateAccount();
               Alert.alert("Sucesso", "Conta excluída com sucesso!");
-              navigation.replace("Login"); // Redireciona para a tela de login
+              navigation.replace("SignIn"); // Redireciona para a tela de login
             } catch (error) {
               Alert.alert("Erro", error.message);
             }

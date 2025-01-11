@@ -45,7 +45,6 @@ export const notification = async (tokens, message, currentUserToken) => {
       console.warn("Nenhum token de notificação fornecido.");
       return;
     }
-    console.log("emitir alerta 1000");
 
     // Filtra o token do usuário atual para não enviar notificações a ele
 
@@ -76,6 +75,7 @@ export const notification = async (tokens, message, currentUserToken) => {
     if (!response.ok) {
       throw new Error(`Erro na API Expo Push Notification: ${response.statusText}`);
     }
+    Notifications.getPermissionsAsync().then(({ status }) => console.log(`Permissão para notificações: ${status}`));
 
   } catch (error) {
     console.error("Erro ao enviar notificações:", error.message);

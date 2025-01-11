@@ -64,9 +64,6 @@ const Details = ({ marker, visibleValue, onClose }) => {
     fetchData();
   }, [marker]);
   
-  
-
-  // Adicione useEffect para depurar mudanças em incidents e comments
   useEffect(() => {
   }, [incidents]);
 
@@ -224,7 +221,8 @@ const Details = ({ marker, visibleValue, onClose }) => {
                         ? `${formatDate(incident.updatedAt)} (editado)`
                         : formatDate(incident.createdAt)}
                       </Text>
-                      {(isAdmin != "false" || incident.idUser == userId) && (
+                      {console.log(isAdmin)}
+                      {(isAdmin != false || incident.idUser == userId) && (
                       <Menu
                         visible={menuVisible[incident.id] || false}
                         onDismiss={() => toggleMenu(incident.id)}
@@ -262,7 +260,7 @@ const Details = ({ marker, visibleValue, onClose }) => {
                           </Text>
                             <Text style={styles.commentText}>{comment.text}</Text>
                           </View>
-                          {(isAdmin != "false" || comment.idUser == userId) && (
+                          {(isAdmin != false || comment.idUser == userId) && (
                           <Menu
                             visible={menuVisible[comment.id] || false}
                             onDismiss={() => toggleMenu(comment.id)}
@@ -395,6 +393,12 @@ const styles = StyleSheet.create({
     marginLeft: 'auto', // Empurra o ícone para a direita
     left: 290,
     top:5
+  },
+
+  closeButtonForm : {
+    marginLeft: 'auto', // Empurra o ícone para a direita
+    left: 290,
+    bottom:265
   },
   modalContainer: {
     flex: 1,

@@ -186,7 +186,6 @@ export const loginWithEmailAndPassword = async (email, password) => {
   export const deactivateAccount = async () => {
 	try {
 	  const user = auth.currentUser;
-	  console.log("ioioii");
 
 	  if (!user) {
 		throw new Error("Usuário não autenticado.");
@@ -196,7 +195,6 @@ export const loginWithEmailAndPassword = async (email, password) => {
 	  return "Conta excluída!";
 	} catch (error) {
 	  console.error("Erro ao excluir a conta:", error.message);
-	  throw new Error(error.message);
 	}
   };
   

@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
           }
           setLoading(false);
         }, (error) => {
-          console.error("Erro ao escutar dados do usuário:", error);
+          console.log("Erro ao escutar dados do usuário:", error);
           setUserData(null);
           setLoading(false);
         });

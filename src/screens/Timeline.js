@@ -185,7 +185,7 @@ const Timeline = () => {
         </Text>
         {incidents.map((incident) => (
           <Card style={styles.postCard} key={incident.id}>
-            {(isAdmin != "false" || incident.idUser == userId) && (
+            {(isAdmin != false || incident.idUser == userId) && (
               <Menu
                 visible={menuVisible[incident.id] || false}
                 onDismiss={() => toggleMenu(incident.id)}
@@ -231,7 +231,7 @@ const Timeline = () => {
                       </Text>
                       <Text style={styles.commentText}>{comment.text}</Text>
                     </View>
-                    {(isAdmin != "false" || comment.idUser == userId) && (
+                    {(isAdmin != false || comment.idUser == userId) && (
                       <Menu
                         visible={menuVisible[comment.id] || false}
                         onDismiss={() => toggleMenu(comment.id)}
@@ -298,11 +298,12 @@ const Timeline = () => {
             <Button mode="contained" style={styles.button} onPress={saveEditedIncident}>
               Salvar Alterações do alerta
             </Button>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setEditingIncident(null)}>
+            <TouchableOpacity onPress={() => setEditingIncident(null)}>
               <Icon
                 name="close"
                 color="rgb(253, 128, 3)"
                 size={24}
+                style={styles.closeButtonIncident}
               />
             </TouchableOpacity>
           </View>
@@ -380,6 +381,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 25,
     top: 15,
+  },
+  closeButtonIncident: {
+    position: "absolute",
+    right: 25,
+    top: 18,
   },
   headerTitle: {
     padding: 10,
