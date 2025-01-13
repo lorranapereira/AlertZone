@@ -24,7 +24,7 @@
       "package": "com.lorrana.alertzone",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyAQ07aDIj4NslRtMQh0lInSVSeLJEUca1s"
+          "apiKey": ""
         }
       },
       "permissions": [

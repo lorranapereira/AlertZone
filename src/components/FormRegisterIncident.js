@@ -83,7 +83,7 @@ const FormRegisterIncident = ({ region, onClose }) => {
 
   const handleSend = async () => {
 
-    if (!title || !description || !region) {
+    if (!(title && description && region)) {
       Alert.alert(
         "Erro",
         "Por favor, preencha todos os campos e certifique-se de que a localização está definida."
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     right: 10,
-    zIndex: 1, // Garante que o botão fique acima dos outros elementos
+    zIndex: 1, 
   },
   input: {
     flex: 1,

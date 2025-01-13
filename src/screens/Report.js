@@ -98,10 +98,12 @@ const Report = ({ navigation }) => {
           ))}
         </Menu>
       </View>
-
+      <Text  style={[styles.axisLabel, { position: "absolute",left: -10, top: 250, transform: [{ rotate: "270deg" }], },]} >
+        Total de Incidentes
+      </Text>
       <BarChart
         data={chartData}
-        width={369 } // Largura da tela com margem
+        width={335 } // Largura da tela com margem
         height={250} // Altura ajustada
         yAxisLabel=""
         chartConfig={{
@@ -111,7 +113,7 @@ const Report = ({ navigation }) => {
           color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
           style: { borderRadius: 16 },
-          barPercentage: 0.5, // Largura das barras ajustada
+          barPercentage: 0.3, // Largura das barras ajustada
           propsForLabels: {
             fontSize: 10, // Tamanho das etiquetas
           },
@@ -119,9 +121,12 @@ const Report = ({ navigation }) => {
         style={{
           marginVertical: 8,
           borderRadius: 16,
-          right:40,
+          right:-20,
         }}
       />
+    <Text style={[styles.axisLabel, { textAlign: "center", marginTop: -20 }]}>
+      Meses do Ano
+    </Text>
 
       {/* Tabela */}
       <Card style={styles.tableCard}>
@@ -156,6 +161,8 @@ const styles = StyleSheet.create({
   tableRow: { flexDirection: "row", justifyContent: "space-between", padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee" },
   rowCell: { fontSize: 14 },
   textYear: {fontSize:18, top:10, marginEnd: 10,},
+  axisLabel: {fontSize: 14, zIndex:1,elevation:1},
+  
 });
 
 export default Report;

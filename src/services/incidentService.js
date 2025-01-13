@@ -25,8 +25,8 @@ export const saveIncident = async (idUser, notificationToken, title, description
     usersSnapshot.forEach((doc) => {
       const userData = doc.data();
       if (
-        userData.latitude &&
-        userData.longitude &&
+        userData.latitude != null &&
+        userData.longitude != null && 
         geolib.isPointWithinRadius(
           { latitude: userData.latitude, longitude: userData.longitude },
           { latitude, longitude },
